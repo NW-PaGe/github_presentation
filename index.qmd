@@ -65,6 +65,7 @@ done
 
 ```
 
+
 ```{r}
 #| label: setup
 #| echo: true
@@ -96,15 +97,25 @@ plot <- function(df=df2,f_date='2019-01-01'){
                   geom_line(linewidth=1) +
                   scale_x_date(date_breaks = "1 year", 
                   labels=date_format("%b-%Y"),
-                  limits = as.Date(c('2020-01-01','2025-01-01'))) +
+                  limits = as.Date(c('2020-01-01','2025-04-01'))) +
                   ylim(0,500) +
-                  theme_minimal(base_size = 20) +
+                  # theme_minimal(base_size = 30) +
                   guides(colour = "none", shape = "none") +
+                  
+                  scale_colour_wsj("colors6", "") + 
+                  theme_wsj(color = "gray")+
+                  # theme_clean() +
+                  theme(
+                        panel.grid.major.x = element_blank(),
+                        plot.subtitle = element_text(size=14)
+                  ) +
+                  # ggtitle("WA DOH Epi GitHub Repos")+
                   labs(
-                        x = "Date",
-                        y = "Cumulative Count") +
-                  scale_colour_wsj("colors6", "") + theme_wsj(color = "gray")+
-                  ggtitle("WA DOH Epi Repo Counts") 
+                        y = "Cumulative Count",
+                        x = "",
+                        title = "WA DOH Epi GitHub Timeline",
+                        subtitle = "Cumulative count of epi repos at DOH over time"
+                  ) 
 }
 
 ```
