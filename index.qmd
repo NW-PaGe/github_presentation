@@ -1,0 +1,660 @@
+---
+title: Public GitHub Overview 
+description: Setting up public GitHub use for the NW-PaGe organization
+author: Frank Aragona
+date: 11/22/2024
+date-modified: last-modified
+format:
+      closeread-html:
+            theme: [cosmo, styles.scss]
+            code-fold: true
+            cr-section:
+                  layout: sidebar-left
+            cr-style:
+                  section-background-color: "#062a4a"
+                  narrative-text-color-sidebar: "#fdfdfd"
+            
+# title-block-banner: "#062a4a"
+# title-block-banner-color: "#fdfdfd"
+title-block-banner: true
+      
+knitr:
+  opts_chunk: 
+    dev.args:
+      bg: transparent
+---
+
+:::{.splash-page}
+
+# Overview
+
+- Washington DOH GitHub use statistics over time {{< bi graph-up-arrow size=1.5em >}}
+- NW-PaGe GitHub org details {{< bi bezier2 size=1.5em >}}
+- Security {{< bi shield-lock size=1.5em >}}
+- Quarto {{< bi file-earmark-binary size=1.5em >}}
+- Examples {{< bi rocket-takeoff size=1.5em >}}
+
+
+:::
+
+# WA DOH GitHub Use
+
+Let's start with a timeline of GitHub use at WA DOH. A lot of us joined DOH during early stages the COVID-19 pandemic and had no prior experience using Git/GitHub. A few helpful leaders shared the benefits of using Git/GitHub and helped onboard some teams to use it for their code version control. From there, GitHub became an integral part of our programming workflows.
+
+Scroll down to see how GitHub use for epidemiologists has changed over time at WA DOH. Note that this is far from a legit analysis; I pulled data from our main GitHub org and found how many repos were created over time.
+
+Open this code to see how I pulled the data
+
+```{bash filename='pull_github_repos.sh'}
+#| eval: false
+#| echo: true
+#!/bin/bash
+
+# Replace with your GitHub organization name
+ORG_NAME="DOH-EPI-Coders"
+
+# List repositories in the organization
+REPOS=$(gh repo list $ORG_NAME --json name --limit 1000 | jq -r '.[].name')
+
+# Loop through each repository and fetch the creation date
+for REPO in $REPOS; do
+  CREATION_DATE=$(gh api repos/$ORG_NAME/$REPO --jq '.created_at')
+  echo "Repository: $REPO - Created on: $CREATION_DATE"
+  echo "repo,$CREATION_DATE" >> repo_creation_dates.csv
+done
+
+```
+
+```{r}
+#| label: setup
+#| echo: true
+#| output: false
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+library(ggthemes)
+
+df <- read_csv('repo_creation_dates.csv') |>
+      mutate(
+            # clean_date = as.Date(create_date, "%a, %d %b %Y"),
+            clean_date = as.Date(format(create_date, "%Y-%m-%d")),
+            month = lubridate::month(clean_date),
+            year = lubridate::year(clean_date)
+      )
+
+
+df2 <- df |>
+      count(clean_date) |>
+      arrange(clean_date) |>
+      mutate(cumulative = cumsum(n))
+
+plot <- function(df=df2,f_date='2019-01-01'){
+      df %>%
+            filter(clean_date <= f_date) %>%
+            ggplot(aes(x=clean_date,y=cumulative)) +
+                  geom_line(linewidth=1) +
+                  scale_x_date(date_breaks = "1 year", 
+                  labels=date_format("%b-%Y"),
+                  limits = as.Date(c('2020-01-01','2025-01-01'))) +
+                  ylim(0,500) +
+                  theme_minimal(base_size = 20) +
+                  guides(colour = "none", shape = "none") +
+                  labs(
+                        x = "Date",
+                        y = "Cumulative Count") +
+                  scale_colour_wsj("colors6", "") + theme_wsj(color = "gray")+
+                  ggtitle("WA DOH Epi Repo Counts") 
+}
+
+```
+
+<br> 
+
+:::::::: cr-section
+
+Let's start with a timeline of GitHub use at WA DOH. @cr-timeline1
+
+::: {#cr-timeline1}
+```{r}
+#| fig.width=7
+# df2 %>%
+#       filter(clean_date <= '2020-01-01') %>%
+#       ggplot(aes(x=clean_date,y=cumulative)) +
+#             geom_line(linewidth=2) +
+#             scale_x_date(date_breaks = "1 year", 
+#                  labels=date_format("%b-%Y"),
+#                  limits = as.Date(c('2020-01-01','2025-01-01'))) +
+#             ylim(0,500) +
+#             theme_minimal(base_size = 20) +
+#             guides(colour = "none", shape = "none") +
+#             labs(
+#                   x = "Date",
+#                   y = "Cumulative Count")
+plot()
+
+```
+:::
+
+Our Epi GitHub Org was created in 2020. In 2021 The Data Science and Support Unit began using Git and GitHub for version control when developing the sequencing metadata integration pipeline. @cr-timeline2
+
+::: {#cr-timeline2}
+```{r}
+#| fig.width=7
+plot(f_date='2021-07-01') +
+      geom_vline(xintercept = ymd("2021-07-01"), linetype = 4) +
+      annotate(
+            "label",
+            x = ymd("2021-07-01"),
+            y = 200,
+            size = 5,
+            label = "DSSU makes seq repo") 
+```
+:::
+
+It took a while.. but eventually more epidemiologists started to ask for and receive GitHub licenses. In 2022 we received a batch of licenses, \~ \> 150 DOH users set up GitHub accounts, we set up collaborative repos for MPV response, and started discussions on public GitHub use. @cr-timeline3
+
+::: {#cr-timeline3}
+```{r}
+#| fig.width=7
+plot(f_date='2022-12-01') +
+      geom_vline(xintercept = ymd("2021-07-01"), linetype = 4) +
+      annotate(
+            "label",
+            x = ymd("2021-07-01"),
+            y = 200,
+            size = 5,
+            label = "DSSU makes seq repo") +
+      geom_vline(xintercept = ymd("2022-12-01"), linetype = 4) +
+      annotate(
+            "label",
+            x = ymd("2022-12-01"),
+            y = 300,
+            size = 5,
+            label = "Public GitHub talks") 
+```
+:::
+
+In Feb. 2024 we created the SOPs for public GitHub use in the NW-PaGe org and published the first repo in March 2024. @cr-timeline4
+
+::: {#cr-timeline4}
+```{r}
+#| fig.width=7
+plot(f_date='2024-03-01') +
+      geom_vline(xintercept = ymd("2021-07-01"), linetype = 4) +
+      annotate(
+            "label",
+            x = ymd("2021-07-01"),
+            y = 200,
+            size = 5,
+            label = "DSSU makes seq repo") +
+      geom_vline(xintercept = ymd("2022-12-01"), linetype = 4) +
+      annotate(
+            "label",
+            x = ymd("2022-12-01"),
+            y = 300,
+            size = 5,
+            label = "Public GitHub talks") +
+      geom_vline(xintercept = ymd("2024-03-01"), linetype = 4) +
+      annotate(
+            "label",
+            x = ymd("2024-03-01"),
+            y = 250,
+            size = 5,
+            label = "First NW-PaGe public repo") 
+```
+:::
+
+As of now (Dec. 2024), we have **436** repos in the DOH-EPI-Coders org and **22** repos in the NW-PaGe org @cr-timeline5
+
+::: {#cr-timeline5}
+```{r}
+#| fig.width=7
+plot(f_date='2025-01-01') +
+      geom_vline(xintercept = ymd("2021-07-01"), linetype = 4) +
+      annotate(
+            "label",
+            x = ymd("2021-07-01"),
+            y = 200,
+            size = 5,
+            label = "DSSU makes seq repo") +
+      geom_vline(xintercept = ymd("2022-12-01"), linetype = 4) +
+      annotate(
+            "label",
+            x = ymd("2022-12-01"),
+            y = 300,
+            size = 5,
+            label = "Public GitHub talks") +
+      geom_vline(xintercept = ymd("2024-03-01"), linetype = 4) +
+      annotate(
+            "label",
+            x = ymd("2024-03-01"),
+            y = 250,
+            size = 5,
+            label = "First NW-PaGe public repo")
+```
+:::
+::::::::
+
+<br>
+
+:::: {.splash-page}
+
+## NW-PaGe GitHub Org ([link](https://github.com/NW-PaGe))
+
+::::{.columns}
+::: {.column width="50%"}
+### Goals
+
+- Transparency
+- Reproducibility
+- Education
+- Collaboration
+:::
+
+::: {.column width="50%"}
+### My Goals
+
+- Write the SOPs
+- Prevent data leaks
+- Explore publishing tools
+- Get the ball rolling
+:::
+::::
+
+
+![](images/dc.gif){.myframe2 style="display: block; margin: 20px auto;"}
+
+
+::::
+
+
+<br>
+
+<br>
+
+## Policies Overview
+
+Here are the [docs](https://nw-page.github.io/standards/)
+
+::: panel-tabset
+### Checklist
+
+Here's a [checklist for getting started](https://nw-page.github.io/standards/gh/quickstart.html)
+
+-   For those looking to make a new repo
+-   Security items to review
+-   Create security guardrails
+-   Secret scanning
+-   Licensing
+-   Branch protections
+-   Documentations
+
+### Security
+
+-   cannot push credentials or sensitive data ([here's a list](https://nw-page.github.io/standards/gh/security.html#tbl-prohibit))
+-   [.gitignore](https://nw-page.github.io/standards/gh/security.html#sec-creds)
+-   [hooks](https://nw-page.github.io/standards/gh/security.html#sec-hooks)
+-   [secret scanning](https://nw-page.github.io/standards/gh/security.html#sec-scan)
+-   convert private repo to [public](https://nw-page.github.io/standards/gh/security.html#sec-public)
+
+### For Admins
+
+[Policies at the Org level](https://nw-page.github.io/standards/gh/policies.html)
+
+-   Code of conduct
+-   Contributing form
+-   Templates (Issues, PRs, Requests, Discussions)
+-   GitHub apps for code sign off
+
+### Collaboration Guide
+
+Here's a [collab guide](https://nw-page.github.io/standards/gh/contribute.html)
+
+-   Git/GitHub basics
+-   How to contribute to a repo
+-   Git/GitHub workflows
+
+### Licensing
+
+Use an MIT license for everything. Here's more [info](https://nw-page.github.io/standards/gh/lic.html)
+
+### Tutorials
+
+-   [Automated release cycles in your repo](https://nw-page.github.io/standards/gh/release.html)
+-   [Virtual environments in R/Python](https://nw-page.github.io/standards/gh/renv.html)
+-   [Templates](https://nw-page.github.io/standards/gh/templates.html)
+-   [Quarto for documentation](https://nw-page.github.io/standards/gh/how_to.html)
+-   [Creating a new repo](https://nw-page.github.io/standards/gh/newrepo.html)
+:::
+
+# Security - Pre-Commit Hooks
+
+## Create Secret Key
+
+This file contains regular expressions of credentials that are _prohibited_ from being in a remote GitHub repo.
+
+![](images/test_key.gif){.myframe}
+
+## Example Script
+
+The script below has hardcoded prohibited patterns.
+
+![](images/test_key_script.gif){.myframe}
+
+## Pattern Rejection
+
+[AWS Git Secrets](https://github.com/awslabs/git-secrets) rejects the commit if it detects the patterns found in the secret key file.
+
+![](images/test_key_flag.gif){.myframe}
+
+## Output
+
+The first three lines show the regex patterns that got flagged, along with a warning message. The last chunk gives you instructions on how to handle false positives.
+
+:::::::{.codewindow}
+::::{.header}
+
+<svg viewBox="0 0 420 100" style="width:55px"><circle fill="#ff5f57" cx="50" cy="50" r="50"/><circle fill="#febc2e" cx="210" cy="50" r="50"/><circle fill="#28c840" cx="370" cy="50" r="50"/></svg>
+
+::: file
+output
+:::
+::::
+
+:::: textarea
+::: sourceCode
+```{bash}
+#| code-line-numbers: "|1-3|5|13"
+#| eval: false
+#| echo: true
+#| code-fold: false
+test.R:3:user <- secret_username
+test.R:4:password <- secret_password
+test.R:6:connection <- ODBC_CONNECTION1
+
+[ERROR] Matched one or more prohibited patterns
+
+Possible mitigations:
+- Mark false positives as allowed using: git config --add secrets.allowed ...
+- Mark false positives as allowed by adding regular expressions to .gitallowed at repository's root directory
+- List your configured patterns: git config --get-all secrets.patterns
+- List your configured allowed patterns: git config --get-all secrets.allowed
+- List your configured allowed patterns in .gitallowed at repository's root directory
+- Use --no-verify if this is a one-time false positive
+```
+:::
+::::
+:::::::
+
+<br>
+
+# GitHub Pages and Quarto
+
+We can use GitHub Pages to host htmls, and Quarto to develop websites, books, articles, presentations, and reports.
+
+:::::::: cr-section
+Here's an example parameterized and automated report. @cr-report
+
+::: {#cr-report}
+![](images/typst-report.png){width="500"}
+:::
+
+We can bake our code into the report and produce plots and statistics so that we don't need to copy and paste screen shots of the plots or manually update numbers everytime we generate the report. [@cr-report]{pan-to="-40%,60%" scale-by="3.1"}
+
+
+And likewise with text. We don't need to 'hardcode' any text into the document. Notice the statistics written in the text - all of them are 'written' using code and can be automatically updated whenever there are changes.  [@cr-report]{pan-to="60%,-90%" scale-by="3.1"}
+
+
+::::::::
+
+:::::::: cr-section
+
+Here's how you can automate your reports {{< bi cloud-snow-fill size=2em  >}}
+
+Here is a quarto (.qmd) file that processes data and outputs our report. @cr-yaml
+
+In the yaml front matter we can define metadata. Here I'm specifying that I want multiple formats to be produced from this file along with a set of parameters.  [@cr-yaml]{highlight="1-11"}
+
+You can write markdown text, link to Zotero, and make cross references. [@cr-yaml]{highlight="15"}
+
+And you can embed figures/code from external scripts. [@cr-yaml]{highlight="17-21"}
+
+
+
+:::::::{#cr-yaml}
+:::::::{.codewindow .medframe}
+:::: header
+<svg viewBox="0 0 420 100" style="width:55px"><circle fill="#ff5f57" cx="50" cy="50" r="50"/><circle fill="#febc2e" cx="210" cy="50" r="50"/><circle fill="#28c840" cx="370" cy="50" r="50"/></svg>
+
+::: file
+report.qmd
+:::
+::::
+
+:::: textarea
+::: sourceCode
+````markdown
+---
+title: Epi Report
+format: 
+      html: default
+      pdf: default
+      docx: default
+      typst: default
+param: 
+      state: "WA"
+      year: "2024"
+---
+
+# Introduction
+
+Text here, @citation here @cross-section-link here
+
+Here's a table:
+{{< embed notebooks/nwcoe.qmd#tab-countprop >}}
+
+Here's a plot:
+{{< embed notebooks/nwcoe.ipynb#fig-trendline >}}
+
+
+````
+:::
+::::
+:::::::
+::::::: 
+
+
+::::::::
+
+
+::::::::{.cr-section}
+
+We can bake code into the report and use the outputs in the text. @cr-yaml2
+
+This code chunk pulls data from a model and assigns it to a variable named `wa_prop` [@cr-yaml2]{highlight="5-9"}
+
+And we can use the output `wa_prop` in the text like this: [@cr-yaml2]{highlight="15"}
+
+
+:::::::{#cr-yaml2}
+:::::::{.codewindow .medframe}
+:::: header
+<svg viewBox="0 0 420 100" style="width:55px"><circle fill="#ff5f57" cx="50" cy="50" r="50"/><circle fill="#febc2e" cx="210" cy="50" r="50"/><circle fill="#28c840" cx="370" cy="50" r="50"/></svg>
+
+::: file
+report.qmd
+:::
+::::
+
+:::: textarea
+::: sourceCode
+````markdown
+```{{r}}
+# Create a model 
+model <- multinom(cbind(Alpha, Delta, Omicron) ~ Date,data = variant_data_wide)
+
+wa_prop <- predicted_data %>%
+  arrange(desc(Date)) %>%
+  slice(1) %>%
+  pull(Alpha) %>%
+  scales::percent(., accuracy = 0.01)
+
+```
+
+## Site Summaries
+
+- Washington State Department of Health - Alpha variant proportion is `{{r}} wa_prop`
+- Georgia Department of Public Health probablity of detection: `{{r}} ga_prop` and the consensus genomes are uploaded to public repositories like GISAID and GenBank.
+- Massachusetts Department of Health prop - `{{r}} ne_prop`
+- Virginia Deparment of Health - `{{r}} va_prop`
+
+````
+:::
+::::
+:::::::
+::::::: 
+
+And now our code can automatically update the text in the report: @cr-report-sum
+
+::: {#cr-report-sum}
+![](images/site_sum.png){.myframe2}
+:::
+
+::::::::
+
+:::::::: cr-section
+
+Here's how parameterized reports work {{< bi rocket-takeoff-fill size=2em >}}
+
+Start with our .qmd file. @cr-template1
+
+::: {#cr-template1}
+![](images/template1.svg){width=1100 height=900}
+:::
+
+When rendering, we can set the parameter we want. @cr-template2
+
+::: {#cr-template2}
+![](images/template2.svg){width=1100 height=900}
+:::
+
+Quarto will generate a separate output file for each parameter set, with the data filtered according to the specified parameter(s). @cr-template3
+
+::: {#cr-template3}
+![](images/template3.svg){width=1100 height=900}
+:::
+
+::::::::
+
+
+
+<br>
+
+
+:::: {.splash-page}
+
+# but who cares?
+
+I do!
+
+We can use Quarto and GitHub to showcase our work and run code automatically. A GitHub Action can run code conditionally or on a schedule, and GitHub Pages can host the html output of our reports.
+
+![](images/gh-action.png){.myframe}
+
+![](images/gh-page.png){.myframe}
+
+::::
+
+# examples
+
+## [COVID Seq ELR](https://github.com/NW-PaGe/covid_seq_elr)
+
+**Author: Philip Crain**
+
+Summarize and share COVID-19 Sequencing Metadata ELR data flow at the Washington State Department of Health.
+
+
+<table>
+<tr><td valign="top">
+
+This repo provides a high-level description of the Sars-CoV-2 sequencing metadata ELR ingestion process at DOH, from lab submissions to ingestion into the Washington Disease Reporting System where it is linked with epi data. See the [GitHub Page](https://nw-page.github.io/covid_seq_elr) for more information
+
+</td><td valign="top">
+[![](images/covid-seq-elr.png){style="border: 5px solid black; padding: 5px;" width=1000}](https://nw-page.github.io/covid_seq_elr)
+</td>
+</tr>
+</table>
+
+## [Case Study Vibrio](https://github.com/NW-PaGe/Case-Study-Vibrio)
+
+**Author: Marcela Torres**
+
+Currently only internal users can see this repo and GitHub Page.
+
+<table>
+<tr><td valign="top">
+
+This case study is intended for epidemiologists, bioinformaticians, and other public health professionals who are interested in using sequencing data as a way to better understand transmission and links between cases. We provide a couple of options to execute some of the tasks based on different levels of expertise. See [GitHub Page](https://ubiquitous-disco-j59rm5o.pages.github.io/) for more details.
+
+</td><td valign="top">
+[![](images/vibrio.png){style="border: 5px solid black; padding: 5px;" width=1450}](https://ubiquitous-disco-j59rm5o.pages.github.io/)
+</td>
+</tr>
+</table>
+
+
+## [MPOX Surveillance for WA DOH](https://github.com/NW-PaGe/mpox-surveillance)
+
+**Author: Pauline Trinh**
+
+Currently only internal users can see this repo and GitHub Page.
+
+<table>
+<tr><td valign="top">
+
+This repo contains scripts and information on how MPOX sequencing data is retrieved from NCBI and analyzed in Nextclade to look for mutations associated with tecovirimat resistance (asparagine 267 deletion N267del and alanine-184-to-threonine substitution A184T) and generate a report of those findings.
+
+Currently the report and scripts in this repository are automated to run biweekly on Mondays at 7am Pacific Time using GitHub Actions. For manual running of the scripts in this repository please see instructions below.
+
+</td><td valign="top">
+[![](images/mpox.png){style="border: 5px solid black; padding: 5px;" width=1190}](https://github.com/NW-PaGe/mpox-surveillance)
+</td>
+</tr>
+</table>
+
+## [COVID-19 Lineage Classifications](https://github.com/NW-PaGe/lineage_classifications)
+
+**Authors: Lauren Frisbie, Alena Schroeder, Frank Aragona**
+
+Create a public lineage classifications dataset. The dataset is maintained by the WA DOH Molecular Epidemiology Program in order to group the lineages for the Sequencing & Variants Report. 
+
+<table>
+<tr><td valign="top">
+
+This repo contains scripts that will pull SARS-COV-2 lineages of interest from CDC's repo, transform the data for Washington State DOH reporting purposes, and then output the resulting lineage classifications dataset. The dataset will be produced biweekly and can be found in the data folder. See instructions below on how to pull the dataset in R or Python.
+
+For more information on how the scripts work, plots, and guides on how to pull data from the repo, please open the [github page](https://nw-page.github.io/lineage_classifications/).
+
+</td><td valign="top">
+[![](images/lineages.png){style="border: 5px solid black; padding: 5px;" width=1500}](https://nw-page.github.io/lineage_classifications/)
+</td>
+</tr>
+</table>
+
+## [Seq Integration Pipeline](https://github.com/NW-PaGe/sequencing_integration_pipeline1.0)
+
+**Author: DIQA, MEP, DSSU, evvveryone**
+
+Documentation on the first version of the data integration pipeline for sequencing metadata at WA DOH - used during the height of the COVID-19 pandemic.
+
+<table>
+<tr><td valign="top">
+
+For a more detailed look at the pipeline, please read the manuscript in our [github page](https://nw-page.github.io/sequencing_integration_pipeline1.0/). The document comes in multiple formats (HTML, PDF and MS Word) and all the main code is documented under the Notebooks tab in the site. There are links to dev containers if you wish to explore the code, although there are no test data sets available at this time. In the future we will push our updated pipelines and test data so that you can explore the code.
+
+</td><td valign="top">
+[![](images/seq_1.0.png){style="border: 5px solid black; padding: 5px;" width=1750}](https://github.com/NW-PaGe/sequencing_integration_pipeline1.0)
+</td>
+</tr>
+</table>
