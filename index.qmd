@@ -1,7 +1,9 @@
 ---
 title: Public GitHub Overview 
 description: Setting up public GitHub use for the NW-PaGe organization
-author: Frank Aragona
+author: 
+      - name: Frank Aragona
+        email: frank.aragona@doh.wa.gov
 date: 11/22/2024
 date-modified: last-modified
 format:
@@ -28,26 +30,50 @@ knitr:
 
 # Overview
 
-- Washington DOH GitHub use statistics over time {{< bi graph-up-arrow size=1.5em >}}
 - NW-PaGe GitHub org details {{< bi bezier2 size=1.5em >}}
+- Washington DOH GitHub use statistics over time {{< bi graph-up-arrow size=1.5em >}}
 - Security {{< bi shield-lock size=1.5em >}}
-- Quarto {{< bi file-earmark-binary size=1.5em >}}
+- GitHub Pages + Quarto {{< bi file-earmark-binary size=1.5em >}}
 - Examples {{< bi rocket-takeoff size=1.5em >}}
 
 
 :::
 
-# WA DOH GitHub Use
+:::: {.splash-page}
 
-Let's start with a timeline of GitHub use at WA DOH. A lot of us joined DOH during early stages the COVID-19 pandemic and had no prior experience using Git/GitHub. A few helpful leaders shared the benefits of using Git/GitHub and helped onboard some teams to use it for their code version control. From there, GitHub became an integral part of our programming workflows.
+## NW-PaGe GitHub Org ([link](https://github.com/NW-PaGe))
 
-Scroll down to see how GitHub use for epidemiologists has changed over time at WA DOH. Note that this is far from a legit analysis; I pulled data from our main GitHub org and found how many repos were created over time.
+::::{.columns}
+::: {.column width="50%"}
+### Goals
 
-Open this code to see how I pulled the data
+- Transparency
+- Reproducibility
+- Education
+- Collaboration
+:::
+
+::: {.column width="50%"}
+### My Goals
+
+- Write the SOPs
+- Prevent data leaks
+- Explore publishing tools
+- Get the ball rolling
+:::
+::::
+
+
+![](images/dc.gif){.myframe2 style="display: block; margin: 20px auto;"}
+
+
+::::
+
+
 
 ```{bash filename='pull_github_repos.sh'}
 #| eval: false
-#| echo: true
+#| echo: false
 #!/bin/bash
 
 # Replace with your GitHub organization name
@@ -68,7 +94,7 @@ done
 
 ```{r}
 #| label: setup
-#| echo: true
+#| echo: false
 #| output: false
 library(tidyverse)
 library(lubridate)
@@ -247,37 +273,6 @@ plot(f_date='2025-01-01') +
 :::
 ::::::::
 
-<br>
-
-:::: {.splash-page}
-
-## NW-PaGe GitHub Org ([link](https://github.com/NW-PaGe))
-
-::::{.columns}
-::: {.column width="50%"}
-### Goals
-
-- Transparency
-- Reproducibility
-- Education
-- Collaboration
-:::
-
-::: {.column width="50%"}
-### My Goals
-
-- Write the SOPs
-- Prevent data leaks
-- Explore publishing tools
-- Get the ball rolling
-:::
-::::
-
-
-![](images/dc.gif){.myframe2 style="display: block; margin: 20px auto;"}
-
-
-::::
 
 
 <br>
