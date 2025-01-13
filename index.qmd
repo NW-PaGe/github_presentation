@@ -1,43 +1,425 @@
 ---
-title: Public GitHub Overview 
-description: Setting up public GitHub use for the NW-PaGe organization
-author: 
-      - name: Frank Aragona
-        email: frank.aragona@doh.wa.gov
-date: 11/22/2024
-date-modified: last-modified
+# title: Public GitHub Overview 
+# description: Setting up public GitHub use for the NW-PaGe organization
+# author: 
+#       - name: Frank Aragona
+#         email: frank.aragona@doh.wa.gov
+# date: 11/22/2024
+# date-modified: last-modified
 format:
       closeread-html:
             theme: [cosmo, styles.scss]
+            smooth-scroll: true
             code-fold: true
             cr-section:
                   layout: sidebar-left
             cr-style:
-                  section-background-color: "#062a4a"
+                  narrative-background-color-sidebar: "#021525"
+                  section-background-color: "#f6f9fc"
                   narrative-text-color-sidebar: "#fdfdfd"
-            
-# title-block-banner: "#062a4a"
-# title-block-banner-color: "#fdfdfd"
-title-block-banner: true
-      
-knitr:
-  opts_chunk: 
-    dev.args:
-      bg: transparent
+                  # narrative-overlay-max-width: 
+knitr: true
 ---
+
+::::::{.cr-section}
+
+:::{focus-on="cr-title"}
+
+## Public GitHub Org ![](images/water-wave.png){style="position: relative; top: -2.5px;" width="40"}
+
+frank aragona
+
+:::
+
+:::{#cr-title}
 
 :::{.splash-page}
 
-# Overview
+## Overview
 
-- NW-PaGe GitHub org details {{< bi bezier2 size=1.5em >}}
 - Washington DOH GitHub use statistics over time {{< bi graph-up-arrow size=1.5em >}}
+- NW-PaGe GitHub org details {{< bi bezier2 size=1.5em >}}
 - Security {{< bi shield-lock size=1.5em >}}
 - GitHub Pages + Quarto {{< bi file-earmark-binary size=1.5em >}}
 - Examples {{< bi rocket-takeoff size=1.5em >}}
 
 
 :::
+
+:::
+
+::::::
+
+:::::{.cr-section}
+
+:::{.progress-block}
+
+:::{focus-on="cr-ploty"}
+
+Our Epi GitHub Org was created in 2020. In 2021 The Data Science and Support Unit began using Git and GitHub for version control when developing the sequencing metadata integration pipeline. It took a while.. but eventually more epidemiologists started to ask for and receive GitHub licenses. In 2022: 
+
+-  we received a batch of licenses
+- ~ > 150 DOH users set up GitHub accounts, 
+- we set up collaborative repos for MPV response, and started discussions on public GitHub use.
+
+:::
+
+:::{focus-on="cr-ploty"}
+```{r}
+#| label: counts
+#| echo: false
+#| message: false
+#| warning: false
+#| 
+library(tidyverse)
+library(gt)
+library(gtExtras)
+style_table <- function(df){
+  
+  df %>%
+    #All column headers are capitalised
+    opt_all_caps() %>% 
+    #Use the Chivo font
+    #Note the great 'google_font' function in 'gt' that removes the need to pre-load fonts
+    opt_table_font(
+      font = list(
+        google_font("JetBrains Mono"),
+        default_fonts()
+      )
+    ) %>%
+    tab_options(
+      #Remove border between column headers and title
+      column_labels.border.top.width = px(3),
+      column_labels.border.top.color = "black",
+      #Remove border around table
+      table.border.top.color = "black",
+      table.border.bottom.color = "black",
+      #Reduce the height of rows
+      data_row.padding = px(3),
+      data_row.padding.horizontal = px(10),
+      #Adjust font sizes and alignment
+      source_notes.font.size = 12,
+      heading.align = "left"
+    ) %>%
+    # We use tab_style() to change style of cells
+    # cell_borders() provides the formatting
+    # locations tells it where
+    # Add black borders to the bottom of all the column labels
+    tab_style(
+      style = list(
+        cell_borders(
+          sides = "bottom",
+          color = "black",
+          weight = px(3)
+        )
+      ),
+      locations = list(
+        cells_column_labels(
+          columns = gt::everything()
+        )
+      )
+    )
+}
+
+df <- read_csv("repo_data_test.csv")
+
+df %>%
+  count(language) %>%
+  arrange(desc(n)) %>%
+  summarize(
+    n,
+    x_scaled = n / nrow(df) * 100,
+    .by = language
+  ) %>%
+  gt() %>%
+  gt_plt_bar_pct(
+    column = x_scaled,
+    scaled = TRUE,
+    labels = TRUE,
+    font_size = "12px",
+    fill = "#48c8df"
+  ) %>%
+  fmt_number(
+    columns = n,
+    decimals = 0,
+    use_seps = T
+  ) %>%
+  cols_label(
+    language = 'Top Language',
+    n = 'Count',
+    x_scaled = 'Percent of Total '
+  ) %>%
+    style_table()
+
+```
+:::
+
+:::{focus-on="cr-ploty"}
+```{r}
+#| label: big-repos
+#| echo: false
+#| message: false
+#| warning: false
+
+df %>%
+  arrange(desc(commits)) %>%
+  slice(1:5) %>%
+  select(repo, commits, language, url) %>%
+  gt() %>%
+  cols_label(
+    repo = 'Repo',
+    commits = 'Commits',
+    language = 'Top Language',
+    url = 'url'
+  ) %>%
+    style_table()
+```
+:::
+
+:::
+
+:::{#cr-ploty}
+
+
+```{ojs}
+
+node_data = FileAttachment("repo_data_test.csv").csv()
+
+
+nodes = node_data.map(d => Object.create(d))
+
+// bfScale = d3.scaleLinear()
+//   .domain([1, 5])
+//   .range([1930, 2020])
+//   .clamp(true)
+    
+scan = crTriggerIndex
+
+chart_param = ({
+  width: width,
+  height: 600,
+  margin: {
+    top: 50,
+    right: 40,
+    bottom: 80,
+    left: 60,
+    center: 150
+  }
+})
+
+chart = {
+  // Define base scales for positioning circles
+  const x = d3.scaleLinear()
+    .domain([0, 1])
+    .range([chart_param.margin.left, chart_param.width - chart_param.margin.right]);
+
+  const y = d3.scaleLinear()
+    .domain([0, 1])
+    .range([chart_param.height - chart_param.margin.bottom, chart_param.margin.top]);
+
+  // Initialize SVG container
+  const svg = d3.select(DOM.svg(chart_param.width, chart_param.height));
+
+  // Append title and subtitle
+  svg.append("text")
+    .attr("x", chart_param.width / 2)
+    .attr("y", chart_param.margin.top - 25)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "20px")
+    .attr("font-weight", "bold")
+    .text("Beeswarm Plot of GitHub Repos Over Time");
+
+  svg.append("text")
+    .attr("x", chart_param.width / 2)
+    .attr("y", chart_param.margin.top - 10)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "14px")
+    .attr("font-weight", "normal")
+    .text("A visualization of repositories in the DOH-EPI-Coders organization");
+
+  // Preprocess data: Map any language that isn't "R" or "Python" to "Other"
+  node_data.forEach(d => {
+    if (d.language === "Jupyter Notebook") {
+      d.language = "Python";
+    } else if (d.language !== "R" && d.language !== "Python") {
+      d.language = "Other";
+    }
+  });
+
+  // Group nodes by language using d3.group
+  const languages = d3.group(node_data, d => d.language);
+
+  // Viridis colors for languages
+  const colorScale = d3.scaleOrdinal()
+  .domain(["R", "Python", "Other"])  // List of languages you want to color
+  .range(["#440154", "#3B528B", "#287D49"]);  // Adjusted Viridis colors with more green
+
+  // Scale for node radius based on the number of commits
+  const radiusScale = d3.scaleLog()
+    .domain([1, 5000])  // Adjust the domain to your data range
+    .range([1, 13]);      // Adjust the range for the circle radius
+
+  // Define x scale based on create_date for grouping by date
+  const xScale = d3.scaleTime()
+    .domain([new Date("2020-01-01"), new Date("2026-01-01")]) // Set date range
+    .range([chart_param.margin.left, chart_param.width - chart_param.margin.right]);
+
+  // Set up the y-scale based on language groups
+  const yScale = d3.scaleBand()
+    .domain(Array.from(languages.keys()))  // Use the language groups as domain
+    .range([chart_param.margin.top, chart_param.height - chart_param.margin.bottom])
+    .padding(0.1);  // Add padding for spacing between the groups
+
+  function createNodes(scan) {
+    // Sort repos by commits in descending order and get the top 5 for scan == 3
+    const topRepos = scan === 3 ? node_data.sort((a, b) => b.commits - a.commits).slice(0, 5) : [];
+    const topRepoCommits = new Set(topRepos.map(d => d.commits));
+
+    // Initialize simulation with the base forces
+    const sim = d3
+      .forceSimulation(node_data)
+      .force("x", d3.forceX(d => xScale(new Date(d.create_date))))  // Position along the X-axis based on create_date
+      .force("collide", d3.forceCollide().radius(d => radiusScale(d.commits) + 1).strength(0.5));  // Default collision force
+
+    // If `scan > 1`, apply additional forces for language grouping
+    if (scan > 1) {
+      // Apply additional y-force to divide nodes by language
+      sim.force("y", d3.forceY(d => yScale(d.language) + 70))  // Position nodes along y-axis based on language
+        .force("collide", d3.forceCollide().radius(d => radiusScale(d.commits) + 1).strength(0.8));  // Adjust collision force
+
+      // Create x-axis for years
+      const xAxis = d3.axisBottom(xScale).tickFormat(d3.timeFormat("%Y"));
+      const xAxisGroup = svg.append("g")
+      .attr("transform", `translate(0, ${chart_param.height - chart_param.margin.bottom})`)
+      .call(xAxis);
+    
+        // Style x-axis labels (make them bold and larger)
+        xAxisGroup.selectAll("text")
+        .attr("font-size", "16px")    // Set font size to 16px or any value you prefer
+        .attr("font-weight", "bold"); // Make the labels bold
+
+        // Create y-axis for language groups
+        const yAxis = d3.axisLeft(yScale);
+        const yAxisGroup = svg.append("g")
+        .attr("transform", `translate(${chart_param.margin.left}, 0)`)
+        .call(yAxis);
+        
+        // Style y-axis labels (make them bold and larger)
+        yAxisGroup.selectAll("text")
+        .attr("font-size", "15px")    // Set font size to 16px or any value you prefer
+        .attr("font-weight", "bold"); // Make the labels bold
+      
+    } else {
+      // For `scan === 1`, apply the default force with no language division
+      sim.force("y", d3.forceY(chart_param.height / 2))  // All nodes at the center of Y-axis
+        .force("collide", d3.forceCollide().radius(d => radiusScale(d.commits) + 1).strength(0.5));  // Default collision force
+
+      // Create x-axis for years
+      const xAxis = d3.axisBottom(xScale).tickFormat(d3.timeFormat("%Y"));
+      const xAxisGroup = svg.append("g")
+      .attr("transform", `translate(0, ${chart_param.height - chart_param.margin.bottom})`)
+      .call(xAxis);
+    
+    // Style x-axis labels (make them bold and larger)
+    xAxisGroup.selectAll("text")
+      .attr("font-size", "16px")    // Set font size to 16px or any value you prefer
+      .attr("font-weight", "bold"); // Make the labels bold
+
+    }
+
+    // Restart the simulation to apply the changes
+    sim.alpha(1)
+      .alphaDecay(0.05)
+      .restart();
+
+    // Bind data and draw nodes
+    const node = svg.selectAll(".node")
+      .data(node_data)
+      .enter()
+      .append("circle")
+      .attr("class", "node")
+      .attr("r", d => radiusScale(d.commits))  // Set the radius based on the 'commits' field
+      .attr("cx", d => xScale(new Date(d.create_date)))  // Set initial x position based on date
+      .attr("cy", d => scan > 1 ? yScale(d.language) : chart_param.height / 2)  // Correct y position based on language
+      .style("fill", (d) => topRepoCommits.has(d.commits) ? "orange" : colorScale(d.language))  // Highlight top 5 repos with orange
+      .style("opacity", (d) => topRepoCommits.has(d.commits) ? 1 : 0.6);  // Lower opacity for non-top 5 repos
+
+    // Add tooltips with repo info
+    node.append("title")
+      .text(d =>
+        `Repo: ${d.repo}\n` +
+        `Commits: ${d.commits}\n` +
+        `Contributors: ${d.contributors}\n` +
+        `Create Date: ${d.create_date}`
+      );
+
+    // Hover effect to change circle color to red on mouseover, revert on mouseout
+    node.on("mouseover", function(event, d) {
+    d3.select(this)
+      .attr("fill", "red")  // Change the fill color to red on mouseover
+      .attr("stroke", "black")  // Add black border
+      .attr("stroke-width", 2);  // Set the border width
+  })
+  .on("mouseout", function(event, d) {
+    d3.select(this)
+      .attr("fill", (d) => topRepoCommits.has(d.commits) ? "orange" : colorScale(d.language))  // Reset the fill color
+      .attr("stroke", null)  // Remove the border on mouse out
+      .attr("stroke-width", null);  // Reset the border width
+  });
+
+    // Show detailed data on click with line breaks
+    node.on("click", function(event, d) {
+      const clickTooltip = d3.select("body").append("div")
+        .attr("class", "click-tooltip")
+        .style("position", "absolute")
+        .style("visibility", "hidden")
+        .style("background", "rgba(0, 0, 0, 0.7)")
+        .style("color", "white")
+        .style("border-radius", "4px")
+        .style("padding", "10px")
+        .style("font-size", "14px")
+        .html(`
+          <strong>Repo:</strong> ${d.repo}<br>
+          <strong>Commits:</strong> ${d.commits}<br>
+          <strong>Contributors:</strong> ${d.contributors}<br>
+          <strong>Create Date:</strong> ${d.create_date}
+        `);
+
+      clickTooltip.style("visibility", "visible")
+        .style("top", `${event.pageY + 10}px`)
+        .style("left", `${event.pageX + 10}px`);
+
+      // Close the click tooltip after 3 seconds (optional)
+      setTimeout(() => {
+        d3.select(".click-tooltip").remove();
+      }, 3000);
+    });
+
+    // Update circle positions on each tick of the simulation
+    sim.on("tick", () => {
+      node
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
+    });
+  }
+
+  // Main logic to check `scan` value and call createNodes accordingly
+  createNodes(scan);  // Pass `scan` to createNodes to handle the different plot configurations
+
+  return svg.node();
+};
+```
+
+
+:::
+
+:::::
+
+::::::{.cr-section}
+
+group goals and my goals @cr-goals
+
+:::{#cr-goals}
 
 :::: {.splash-page}
 
@@ -68,220 +450,17 @@ knitr:
 
 
 ::::
-
-
-
-```{bash filename='pull_github_repos.sh'}
-#| eval: false
-#| echo: false
-#!/bin/bash
-
-# Replace with your GitHub organization name
-ORG_NAME="DOH-EPI-Coders"
-
-# List repositories in the organization
-REPOS=$(gh repo list $ORG_NAME --json name --limit 1000 | jq -r '.[].name')
-
-# Loop through each repository and fetch the creation date
-for REPO in $REPOS; do
-  CREATION_DATE=$(gh api repos/$ORG_NAME/$REPO --jq '.created_at')
-  echo "Repository: $REPO - Created on: $CREATION_DATE"
-  echo "repo,$CREATION_DATE" >> repo_creation_dates.csv
-done
-
-```
-
-
-```{r}
-#| label: setup
-#| echo: false
-#| output: false
-library(tidyverse)
-library(lubridate)
-library(ggplot2)
-library(scales)
-library(ggthemes)
-
-df <- read_csv('repo_creation_dates.csv') |>
-      mutate(
-            # clean_date = as.Date(create_date, "%a, %d %b %Y"),
-            clean_date = as.Date(format(create_date, "%Y-%m-%d")),
-            month = lubridate::month(clean_date),
-            year = lubridate::year(clean_date)
-      )
-
-
-df2 <- df |>
-      count(clean_date) |>
-      arrange(clean_date) |>
-      mutate(cumulative = cumsum(n))
-
-plot <- function(df=df2,f_date='2019-01-01'){
-      df %>%
-            filter(clean_date <= f_date) %>%
-            ggplot(aes(x=clean_date,y=cumulative)) +
-                  geom_line(linewidth=1) +
-                  scale_x_date(date_breaks = "1 year", 
-                  labels=date_format("%b-%Y"),
-                  limits = as.Date(c('2020-01-01','2025-04-01'))) +
-                  ylim(0,500) +
-                  # theme_minimal(base_size = 30) +
-                  guides(colour = "none", shape = "none") +
-                  
-                  scale_colour_wsj("colors6", "") + 
-                  theme_wsj(color = "gray")+
-                  # theme_clean() +
-                  theme(
-                        panel.grid.major.x = element_blank(),
-                        plot.subtitle = element_text(size=14)
-                  ) +
-                  # ggtitle("WA DOH Epi GitHub Repos")+
-                  labs(
-                        y = "Cumulative Count",
-                        x = "",
-                        title = "WA DOH Epi GitHub Timeline",
-                        subtitle = "Cumulative count of epi repos at DOH over time"
-                  ) 
-}
-
-```
-
-<br> 
-
-:::::::: cr-section
-
-Let's start with a timeline of GitHub use at WA DOH. @cr-timeline1
-
-::: {#cr-timeline1}
-```{r}
-#| fig.width=7
-# df2 %>%
-#       filter(clean_date <= '2020-01-01') %>%
-#       ggplot(aes(x=clean_date,y=cumulative)) +
-#             geom_line(linewidth=2) +
-#             scale_x_date(date_breaks = "1 year", 
-#                  labels=date_format("%b-%Y"),
-#                  limits = as.Date(c('2020-01-01','2025-01-01'))) +
-#             ylim(0,500) +
-#             theme_minimal(base_size = 20) +
-#             guides(colour = "none", shape = "none") +
-#             labs(
-#                   x = "Date",
-#                   y = "Cumulative Count")
-plot()
-
-```
 :::
 
-Our Epi GitHub Org was created in 2020. In 2021 The Data Science and Support Unit began using Git and GitHub for version control when developing the sequencing metadata integration pipeline. @cr-timeline2
+::::::
 
-::: {#cr-timeline2}
-```{r}
-#| fig.width=7
-plot(f_date='2021-07-01') +
-      geom_vline(xintercept = ymd("2021-07-01"), linetype = 4) +
-      annotate(
-            "label",
-            x = ymd("2021-07-01"),
-            y = 200,
-            size = 5,
-            label = "DSSU makes seq repo") 
-```
-:::
+::::::{.cr-section}
 
-It took a while.. but eventually more epidemiologists started to ask for and receive GitHub licenses. In 2022 we received a batch of licenses, \~ \> 150 DOH users set up GitHub accounts, we set up collaborative repos for MPV response, and started discussions on public GitHub use. @cr-timeline3
+## SOPs
 
-::: {#cr-timeline3}
-```{r}
-#| fig.width=7
-plot(f_date='2022-12-01') +
-      geom_vline(xintercept = ymd("2021-07-01"), linetype = 4) +
-      annotate(
-            "label",
-            x = ymd("2021-07-01"),
-            y = 200,
-            size = 5,
-            label = "DSSU makes seq repo") +
-      geom_vline(xintercept = ymd("2022-12-01"), linetype = 4) +
-      annotate(
-            "label",
-            x = ymd("2022-12-01"),
-            y = 300,
-            size = 5,
-            label = "Public GitHub talks") 
-```
-:::
+Here are the [docs](https://nw-page.github.io/standards/) @cr-docs
 
-In Feb. 2024 we created the SOPs for public GitHub use in the NW-PaGe org and published the first repo in March 2024. @cr-timeline4
-
-::: {#cr-timeline4}
-```{r}
-#| fig.width=7
-plot(f_date='2024-03-01') +
-      geom_vline(xintercept = ymd("2021-07-01"), linetype = 4) +
-      annotate(
-            "label",
-            x = ymd("2021-07-01"),
-            y = 200,
-            size = 5,
-            label = "DSSU makes seq repo") +
-      geom_vline(xintercept = ymd("2022-12-01"), linetype = 4) +
-      annotate(
-            "label",
-            x = ymd("2022-12-01"),
-            y = 300,
-            size = 5,
-            label = "Public GitHub talks") +
-      geom_vline(xintercept = ymd("2024-03-01"), linetype = 4) +
-      annotate(
-            "label",
-            x = ymd("2024-03-01"),
-            y = 250,
-            size = 5,
-            label = "First NW-PaGe public repo") 
-```
-:::
-
-As of now (Dec. 2024), we have **436** repos in the DOH-EPI-Coders org and **22** repos in the NW-PaGe org @cr-timeline5
-
-::: {#cr-timeline5}
-```{r}
-#| fig.width=7
-plot(f_date='2025-01-01') +
-      geom_vline(xintercept = ymd("2021-07-01"), linetype = 4) +
-      annotate(
-            "label",
-            x = ymd("2021-07-01"),
-            y = 200,
-            size = 5,
-            label = "DSSU makes seq repo") +
-      geom_vline(xintercept = ymd("2022-12-01"), linetype = 4) +
-      annotate(
-            "label",
-            x = ymd("2022-12-01"),
-            y = 300,
-            size = 5,
-            label = "Public GitHub talks") +
-      geom_vline(xintercept = ymd("2024-03-01"), linetype = 4) +
-      annotate(
-            "label",
-            x = ymd("2024-03-01"),
-            y = 250,
-            size = 5,
-            label = "First NW-PaGe public repo")
-```
-:::
-::::::::
-
-
-
-<br>
-
-<br>
-
-## Policies Overview
-
-Here are the [docs](https://nw-page.github.io/standards/)
+:::{#cr-docs}
 
 ::: panel-tabset
 ### Checklist
@@ -334,29 +513,44 @@ Use an MIT license for everything. Here's more [info](https://nw-page.github.io/
 -   [Creating a new repo](https://nw-page.github.io/standards/gh/newrepo.html)
 :::
 
-# Security - Pre-Commit Hooks
+:::
 
-## Create Secret Key
+::::::
 
-This file contains regular expressions of credentials that are _prohibited_ from being in a remote GitHub repo.
+::::::{.cr-section}
+
+## Security
+
+This file contains regular expressions of credentials that are _prohibited_ from being in a remote GitHub repo. @cr-hooks1
+
+
+:::{#cr-hooks1}
 
 ![](images/test_key.gif){.myframe}
 
-## Example Script
+:::
 
-The script below has hardcoded prohibited patterns.
+The script to the right has hardcoded prohibited patterns. @cr-hooks2
+
+
+:::{#cr-hooks2}
 
 ![](images/test_key_script.gif){.myframe}
 
-## Pattern Rejection
+:::
 
-[AWS Git Secrets](https://github.com/awslabs/git-secrets) rejects the commit if it detects the patterns found in the secret key file.
+[AWS Git Secrets](https://github.com/awslabs/git-secrets) rejects the commit if it detects the patterns found in the secret key file. @cr-hooks3
+
+
+:::{#cr-hooks3}
 
 ![](images/test_key_flag.gif){.myframe}
 
-## Output
+:::
 
-The first three lines show the regex patterns that got flagged, along with a warning message. The last chunk gives you instructions on how to handle false positives.
+The first three lines show the regex patterns that got flagged, along with a warning message. The last chunk gives you instructions on how to handle false positives. @cr-output
+
+:::{#cr-output}
 
 :::::::{.codewindow}
 ::::{.header}
@@ -393,13 +587,16 @@ Possible mitigations:
 ::::
 :::::::
 
-<br>
+:::
 
-# GitHub Pages and Quarto
+::::::
+
+:::::::: cr-section
+
+## GitHub Pages and Quarto
 
 We can use GitHub Pages to host htmls, and Quarto to develop websites, books, articles, presentations, and reports.
 
-:::::::: cr-section
 Here's an example parameterized and automated report. @cr-report
 
 ::: {#cr-report}
@@ -536,41 +733,54 @@ Here's how parameterized reports work {{< bi rocket-takeoff-fill size=2em >}}
 Start with our .qmd file. @cr-template1
 
 ::: {#cr-template1}
-![](images/template1.svg){width=1100 height=900}
+![](images/template1-dark.svg){width=1100 height=900}
 :::
 
 When rendering, we can set the parameter we want. @cr-template2
 
 ::: {#cr-template2}
-![](images/template2.svg){width=1100 height=900}
+![](images/template2-dark.svg){width=1100 height=900}
 :::
 
 Quarto will generate a separate output file for each parameter set, with the data filtered according to the specified parameter(s). @cr-template3
 
 ::: {#cr-template3}
-![](images/template3.svg){width=1100 height=900}
+![](images/template3-dark.svg){width=1100 height=900}
 :::
 
 ::::::::
 
 
+::::::{.cr-section}
 
-<br>
+## but who cares?
 
-
-:::: {.splash-page}
-
-# but who cares?
+:::{focus-on="cr-cares"}
 
 I do!
 
 We can use Quarto and GitHub to showcase our work and run code automatically. A GitHub Action can run code conditionally or on a schedule, and GitHub Pages can host the html output of our reports.
+
+:::
+
+:::{#cr-cares}
+
+:::: {.splash-page}
 
 ![](images/gh-action.png){.myframe}
 
 ![](images/gh-page.png){.myframe}
 
 ::::
+
+:::
+
+
+:::::::
+
+<br>
+<br>
+<br>
 
 # examples
 

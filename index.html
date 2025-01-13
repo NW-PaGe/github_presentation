@@ -101,7 +101,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Author</div>
       <div class="quarto-title-meta-contents">
-               <p>Frank Aragona </p>
+               <p>Frank Aragona <a href="mailto:frank.aragona@doh.wa.gov" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
             </div>
     </div>
       
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Modified</div>
       <div class="quarto-title-meta-contents">
-        <p class="date-modified">December 2, 2024</p>
+        <p class="date-modified">December 9, 2024</p>
       </div>
     </div>
       
@@ -141,84 +141,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="overview" class="level1 splash-page">
 <h1>Overview</h1>
 <ul>
-<li>Washington DOH GitHub use statistics over time <i class="bi-graph-up-arrow " style="font-size: 1.5em;" role="img" aria-hidden="true"></i></li>
 <li>NW-PaGe GitHub org details <i class="bi-bezier2 " style="font-size: 1.5em;" role="img" aria-hidden="true"></i></li>
+<li>Washington DOH GitHub use statistics over time <i class="bi-graph-up-arrow " style="font-size: 1.5em;" role="img" aria-hidden="true"></i></li>
 <li>Security <i class="bi-shield-lock " style="font-size: 1.5em;" role="img" aria-hidden="true"></i></li>
-<li>Quarto <i class="bi-file-earmark-binary " style="font-size: 1.5em;" role="img" aria-hidden="true"></i></li>
+<li>GitHub Pages + Quarto <i class="bi-file-earmark-binary " style="font-size: 1.5em;" role="img" aria-hidden="true"></i></li>
 <li>Examples <i class="bi-rocket-takeoff " style="font-size: 1.5em;" role="img" aria-hidden="true"></i></li>
 </ul>
 </section>
-<section id="wa-doh-github-use" class="level1">
-<h1>WA DOH GitHub Use</h1>
-<p>Let’s start with a timeline of GitHub use at WA DOH. A lot of us joined DOH during early stages the COVID-19 pandemic and had no prior experience using Git/GitHub. A few helpful leaders shared the benefits of using Git/GitHub and helped onboard some teams to use it for their code version control. From there, GitHub became an integral part of our programming workflows.</p>
-<p>Scroll down to see how GitHub use for epidemiologists has changed over time at WA DOH. Note that this is far from a legit analysis; I pulled data from our main GitHub org and found how many repos were created over time.</p>
-<p>Open this code to see how I pulled the data</p>
-<div class="cell">
-<div class="code-with-filename">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-with-filename-file">
-<pre><strong>pull_github_repos.sh</strong></pre>
-</div>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace with your GitHub organization name</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="va">ORG_NAME</span><span class="op">=</span><span class="st">"DOH-EPI-Coders"</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># List repositories in the organization</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="va">REPOS</span><span class="op">=</span><span class="va">$(</span><span class="ex">gh</span> repo list <span class="va">$ORG_NAME</span> <span class="at">--json</span> name <span class="at">--limit</span> 1000 <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">'.[].name'</span><span class="va">)</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop through each repository and fetch the creation date</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> REPO <span class="kw">in</span> <span class="va">$REPOS</span><span class="kw">;</span> <span class="cf">do</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="va">CREATION_DATE</span><span class="op">=</span><span class="va">$(</span><span class="ex">gh</span> api repos/<span class="va">$ORG_NAME</span>/<span class="va">$REPO</span> <span class="at">--jq</span> <span class="st">'.created_at'</span><span class="va">)</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> <span class="st">"Repository: </span><span class="va">$REPO</span><span class="st"> - Created on: </span><span class="va">$CREATION_DATE</span><span class="st">"</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> <span class="st">"repo,</span><span class="va">$CREATION_DATE</span><span class="st">"</span> <span class="op">&gt;&gt;</span> repo_creation_dates.csv</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<section id="nw-page-github-org-link" class="level2 splash-page">
+<h2 class="anchored" data-anchor-id="nw-page-github-org-link">NW-PaGe GitHub Org (<a href="https://github.com/NW-PaGe">link</a>)</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<section id="goals" class="level3">
+<h3 class="anchored" data-anchor-id="goals">Goals</h3>
+<ul>
+<li>Transparency</li>
+<li>Reproducibility</li>
+<li>Education</li>
+<li>Collaboration</li>
+</ul>
+</section>
+</div><div class="column" style="width:50%;">
+<section id="my-goals" class="level3">
+<h3 class="anchored" data-anchor-id="my-goals">My Goals</h3>
+<ul>
+<li>Write the SOPs</li>
+<li>Prevent data leaks</li>
+<li>Explore publishing tools</li>
+<li>Get the ball rolling</li>
+</ul>
+</section>
 </div>
 </div>
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scales)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggthemes)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">'repo_creation_dates.csv'</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>            <span class="co"># clean_date = as.Date(create_date, "%a, %d %b %Y"),</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">clean_date =</span> <span class="fu">as.Date</span>(<span class="fu">format</span>(create_date, <span class="st">"%Y-%m-%d"</span>)),</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">month =</span> lubridate<span class="sc">::</span><span class="fu">month</span>(clean_date),</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">year =</span> lubridate<span class="sc">::</span><span class="fu">year</span>(clean_date)</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>df2 <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">count</span>(clean_date) <span class="sc">|&gt;</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">arrange</span>(clean_date) <span class="sc">|&gt;</span></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">cumulative =</span> <span class="fu">cumsum</span>(n))</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>plot <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">df=</span>df2,<span class="at">f_date=</span><span class="st">'2019-01-01'</span>){</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>      df <span class="sc">%&gt;%</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>            <span class="fu">filter</span>(clean_date <span class="sc">&lt;=</span> f_date) <span class="sc">%&gt;%</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>            <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>clean_date,<span class="at">y=</span>cumulative)) <span class="sc">+</span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">geom_line</span>(<span class="at">linewidth=</span><span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"1 year"</span>, </span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">date_format</span>(<span class="st">"%b-%Y"</span>),</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>                  <span class="at">limits =</span> <span class="fu">as.Date</span>(<span class="fu">c</span>(<span class="st">'2020-01-01'</span>,<span class="st">'2025-01-01'</span>))) <span class="sc">+</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">500</span>) <span class="sc">+</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">20</span>) <span class="sc">+</span></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">guides</span>(<span class="at">colour =</span> <span class="st">"none"</span>, <span class="at">shape =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">labs</span>(</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>                        <span class="at">x =</span> <span class="st">"Date"</span>,</span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>                        <span class="at">y =</span> <span class="st">"Cumulative Count"</span>) <span class="sc">+</span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">scale_colour_wsj</span>(<span class="st">"colors6"</span>, <span class="st">""</span>) <span class="sc">+</span> <span class="fu">theme_wsj</span>(<span class="at">color =</span> <span class="st">"gray"</span>)<span class="sc">+</span></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">ggtitle</span>(<span class="st">"WA DOH Epi Repo Counts"</span>) </span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
+<p><img src="images/dc.gif" class="myframe2 img-fluid" style="display: block; margin: 20px auto;"></p>
+</section>
 <p><br></p>
 <div class="cr-section cr-column-screen sidebar-left">
 <div class="narrative-col">
@@ -309,34 +265,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p><br></p>
-<section id="nw-page-github-org-link" class="level2 splash-page">
-<h2 class="anchored" data-anchor-id="nw-page-github-org-link">NW-PaGe GitHub Org (<a href="https://github.com/NW-PaGe">link</a>)</h2>
-<div class="columns">
-<div class="column" style="width:50%;">
-<section id="goals" class="level3">
-<h3 class="anchored" data-anchor-id="goals">Goals</h3>
-<ul>
-<li>[] Transparency</li>
-<li>[] Reproducibility</li>
-<li>[] Education</li>
-<li>[] Collaboration</li>
-</ul>
-</section>
-</div><div class="column" style="width:50%;">
-<section id="my-goals" class="level3">
-<h3 class="anchored" data-anchor-id="my-goals">My Goals</h3>
-<ul>
-<li>[] Write the SOPs</li>
-<li>[] Prevent data leaks</li>
-<li>[] Explore publishing tools</li>
-<li>[] Get the ball rolling</li>
-</ul>
-</section>
-</div>
-</div>
-<p><img src="images/dc.gif" class="myframe2 img-fluid" style="display: block; margin: 20px auto;"></p>
-</section>
-<p><br></p>
 <p><br></p>
 <section id="policies-overview" class="level2">
 <h2 class="anchored" data-anchor-id="policies-overview">Policies Overview</h2>
@@ -397,7 +325,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
-</section>
 <section id="security---pre-commit-hooks" class="level1">
 <h1>Security - Pre-Commit Hooks</h1>
 <section id="create-secret-key" class="level2">
@@ -430,19 +357,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="textarea">
 <div class="sourceCode">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="ex">test.R:3:user</span> <span class="op">&lt;</span>- secret_username</span>
-<span id="cb3-2"><a href="#cb3-2"></a><span class="ex">test.R:4:password</span> <span class="op">&lt;</span>- secret_password</span>
-<span id="cb3-3"><a href="#cb3-3"></a><span class="ex">test.R:6:connection</span> <span class="op">&lt;</span>- ODBC_CONNECTION1</span>
-<span id="cb3-4"><a href="#cb3-4"></a></span>
-<span id="cb3-5"><a href="#cb3-5"></a><span class="ex">[ERROR]</span> Matched one or more prohibited patterns</span>
-<span id="cb3-6"><a href="#cb3-6"></a></span>
-<span id="cb3-7"><a href="#cb3-7"></a><span class="ex">Possible</span> mitigations:</span>
-<span id="cb3-8"><a href="#cb3-8"></a><span class="ex">-</span> Mark false positives as allowed using: git config <span class="at">--add</span> secrets.allowed ...</span>
-<span id="cb3-9"><a href="#cb3-9"></a><span class="ex">-</span> Mark false positives as allowed by adding regular expressions to .gitallowed at repository<span class="st">'s root directory</span></span>
-<span id="cb3-10"><a href="#cb3-10"></a><span class="st">- List your configured patterns: git config --get-all secrets.patterns</span></span>
-<span id="cb3-11"><a href="#cb3-11"></a><span class="st">- List your configured allowed patterns: git config --get-all secrets.allowed</span></span>
-<span id="cb3-12"><a href="#cb3-12"></a><span class="st">- List your configured allowed patterns in .gitallowed at repository'</span>s root directory</span>
-<span id="cb3-13"><a href="#cb3-13"></a><span class="ex">-</span> Use <span class="at">--no-verify</span> if this is a one-time false positive</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1"></a><span class="ex">test.R:3:user</span> <span class="op">&lt;</span>- secret_username</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="ex">test.R:4:password</span> <span class="op">&lt;</span>- secret_password</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="ex">test.R:6:connection</span> <span class="op">&lt;</span>- ODBC_CONNECTION1</span>
+<span id="cb1-4"><a href="#cb1-4"></a></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="ex">[ERROR]</span> Matched one or more prohibited patterns</span>
+<span id="cb1-6"><a href="#cb1-6"></a></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="ex">Possible</span> mitigations:</span>
+<span id="cb1-8"><a href="#cb1-8"></a><span class="ex">-</span> Mark false positives as allowed using: git config <span class="at">--add</span> secrets.allowed ...</span>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="ex">-</span> Mark false positives as allowed by adding regular expressions to .gitallowed at repository<span class="st">'s root directory</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="st">- List your configured patterns: git config --get-all secrets.patterns</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="st">- List your configured allowed patterns: git config --get-all secrets.allowed</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a><span class="st">- List your configured allowed patterns in .gitallowed at repository'</span>s root directory</span>
+<span id="cb1-13"><a href="#cb1-13"></a><span class="ex">-</span> Use <span class="at">--no-verify</span> if this is a one-time false positive</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -460,12 +387,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Here’s an example parameterized and automated report.</p>
 </div>
 </div>
-<div class="trigger new-trigger" data-pan-to="-40%,60%" data-focus-on="cr-report" data-scale-by="3.1">
+<div class="trigger new-trigger" data-scale-by="3.1" data-pan-to="-40%,60%" data-focus-on="cr-report">
 <div class="narrative">
 <p>We can bake our code into the report and produce plots and statistics so that we don’t need to copy and paste screen shots of the plots or manually update numbers everytime we generate the report.</p>
 </div>
 </div>
-<div class="trigger new-trigger" data-pan-to="60%,-90%" data-focus-on="cr-report" data-scale-by="3.1">
+<div class="trigger new-trigger" data-scale-by="3.1" data-pan-to="60%,-90%" data-focus-on="cr-report">
 <div class="narrative">
 <p>And likewise with text. We don’t need to ‘hardcode’ any text into the document. Notice the statistics written in the text - all of them are ‘written’ using code and can be automatically updated whenever there are changes.</p>
 </div>
@@ -483,7 +410,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="narrative-col">
 <div class="trigger">
 <div class="narrative">
-<p>Here’s how you can automate your reports <i class="bi-file-earmark-code-fill " style="" role="img" aria-hidden="true"></i></p>
+<p>Here’s how you can automate your reports <i class="bi-cloud-snow-fill " style="font-size: 2em;" role="img" aria-hidden="true"></i></p>
 </div>
 </div>
 <div class="trigger new-trigger" data-focus-on="cr-yaml">
@@ -491,17 +418,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Here is a quarto (.qmd) file that processes data and outputs our report.</p>
 </div>
 </div>
-<div class="trigger new-trigger" data-focus-on="cr-yaml" data-highlight="1-11">
+<div class="trigger new-trigger" data-highlight="1-11" data-focus-on="cr-yaml">
 <div class="narrative">
 <p>In the yaml front matter we can define metadata. Here I’m specifying that I want multiple formats to be produced from this file along with a set of parameters.</p>
 </div>
 </div>
-<div class="trigger new-trigger" data-focus-on="cr-yaml" data-highlight="15">
+<div class="trigger new-trigger" data-highlight="15" data-focus-on="cr-yaml">
 <div class="narrative">
 <p>You can write markdown text, link to Zotero, and make cross references.</p>
 </div>
 </div>
-<div class="trigger new-trigger" data-focus-on="cr-yaml" data-highlight="17-21">
+<div class="trigger new-trigger" data-highlight="17-21" data-focus-on="cr-yaml">
 <div class="narrative">
 <p>And you can embed figures/code from external scripts.</p>
 </div>
@@ -521,28 +448,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="textarea">
 <div class="sourceCode">
-<div class="sourceCode" id="cb4"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Epi Report</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span><span class="co"> </span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">      html: default</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">      pdf: default</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">      docx: default</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">      typst: default</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="an">param:</span><span class="co"> </span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">      state: "WA"</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">      year: "2024"</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="fu"># Introduction</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>Text here, @citation here @cross-section-link here</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>Here's a table:</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>{{&lt; embed notebooks/nwcoe.qmd#tab-countprop &gt;}}</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>Here's a plot:</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>{{&lt; embed notebooks/nwcoe.ipynb#fig-trendline &gt;}}</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Epi Report</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span><span class="co"> </span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">      html: default</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">      pdf: default</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">      docx: default</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">      typst: default</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="an">param:</span><span class="co"> </span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">      state: "WA"</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">      year: "2024"</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu"># Introduction</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>Text here, @citation here @cross-section-link here</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>Here's a table:</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>{{&lt; embed notebooks/nwcoe.qmd#tab-countprop &gt;}}</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>Here's a plot:</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>{{&lt; embed notebooks/nwcoe.ipynb#fig-trendline &gt;}}</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -557,12 +484,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>We can bake code into the report and use the outputs in the text.</p>
 </div>
 </div>
-<div class="trigger new-trigger" data-focus-on="cr-yaml2" data-highlight="5-9">
+<div class="trigger new-trigger" data-highlight="5-9" data-focus-on="cr-yaml2">
 <div class="narrative">
 <p>This code chunk pulls data from a model and assigns it to a variable named <code>wa_prop</code></p>
 </div>
 </div>
-<div class="trigger new-trigger" data-focus-on="cr-yaml2" data-highlight="15">
+<div class="trigger new-trigger" data-highlight="15" data-focus-on="cr-yaml2">
 <div class="narrative">
 <p>And we can use the output <code>wa_prop</code> in the text like this:</p>
 </div>
@@ -587,24 +514,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="textarea">
 <div class="sourceCode">
-<div class="sourceCode" id="cb5"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="in"># Create a model </span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="in">model &lt;- multinom(cbind(Alpha, Delta, Omicron) ~ Date,data = variant_data_wide)</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="in">wa_prop &lt;- predicted_data %&gt;%</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="in">  arrange(desc(Date)) %&gt;%</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="in">  slice(1) %&gt;%</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="in">  pull(Alpha) %&gt;%</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="in">  scales::percent(., accuracy = 0.01)</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="fu">## Site Summaries</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Washington State Department of Health - Alpha variant proportion is <span class="in">`{r} wa_prop`</span></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Georgia Department of Public Health probablity of detection: <span class="in">`{r} ga_prop`</span> and the consensus genomes are uploaded to public repositories like GISAID and GenBank.</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Massachusetts Department of Health prop - <span class="in">`{r} ne_prop`</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Virginia Deparment of Health - <span class="in">`{r} va_prop`</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="in"># Create a model </span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="in">model &lt;- multinom(cbind(Alpha, Delta, Omicron) ~ Date,data = variant_data_wide)</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="in">wa_prop &lt;- predicted_data %&gt;%</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="in">  arrange(desc(Date)) %&gt;%</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="in">  slice(1) %&gt;%</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="in">  pull(Alpha) %&gt;%</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="in">  scales::percent(., accuracy = 0.01)</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="fu">## Site Summaries</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Washington State Department of Health - Alpha variant proportion is <span class="in">`{r} wa_prop`</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Georgia Department of Public Health probablity of detection: <span class="in">`{r} ga_prop`</span> and the consensus genomes are uploaded to public repositories like GISAID and GenBank.</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Massachusetts Department of Health prop - <span class="in">`{r} ne_prop`</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Virginia Deparment of Health - <span class="in">`{r} va_prop`</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>

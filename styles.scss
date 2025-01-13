@@ -55,6 +55,17 @@ $font-family-sans-serif: 'JetBrains Mono', sans-serif;
 
 /*-- scss:rules --*/
 
+// remove the gap at the start of the page
+main {
+	margin-top: 0em;
+	margin-bottom: 1em;
+}
+
+#title-block-header {
+
+	margin-top: -20px;
+}
+
 // for links
  /* unvisited link */
  a:link {
