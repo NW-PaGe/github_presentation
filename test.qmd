@@ -1,0 +1,928 @@
+---
+# title: Public GitHub Overview 
+# description: Setting up public GitHub use for the NW-PaGe organization
+# author: 
+#       - name: Frank Aragona
+#         email: frank.aragona@doh.wa.gov
+# date: 11/22/2024
+# date-modified: last-modified
+format:
+      closeread-html:
+            theme: [cosmo, styles.scss]
+            smooth-scroll: true
+            code-fold: true
+            cr-section:
+                  layout: sidebar-left
+            cr-style:
+                  narrative-background-color-sidebar: "#021525"
+                  section-background-color: "#f6f9fc"
+                  narrative-text-color-sidebar: "#fdfdfd"
+                  # narrative-overlay-max-width: 
+knitr: true
+---
+
+::::::{.cr-section}
+
+:::{focus-on="cr-title"}
+
+## Public GitHub Org ![](images/water-wave.png){style="position: relative; top: -2.5px;" width="40"}
+
+frank aragona
+
+:::
+
+:::{#cr-title}
+
+:::{.splash-page}
+
+## Overview
+
+- Washington DOH GitHub use statistics over time {{< bi graph-up-arrow size=1.5em >}}
+- NW-PaGe GitHub org details {{< bi bezier2 size=1.5em >}}
+- Security {{< bi shield-lock size=1.5em >}}
+- GitHub Pages + Quarto {{< bi file-earmark-binary size=1.5em >}}
+- Examples {{< bi rocket-takeoff size=1.5em >}}
+
+
+:::
+
+:::
+
+::::::
+
+:::::{.cr-section}
+
+:::{.progress-block}
+
+:::{focus-on="cr-ploty"}
+
+Our Epi GitHub Org was created in 2020. In 2021 The Data Science and Support Unit began using Git and GitHub for version control when developing the sequencing metadata integration pipeline. It took a while.. but eventually more epidemiologists started to ask for and receive GitHub licenses. In 2022: 
+
+-  we received a batch of licenses
+- ~ > 150 DOH users set up GitHub accounts, 
+- we set up collaborative repos for MPV response, and started discussions on public GitHub use.
+
+:::
+
+:::{focus-on="cr-ploty"}
+```{r}
+#| label: counts
+#| echo: false
+#| message: false
+#| warning: false
+#| 
+library(tidyverse)
+library(gt)
+library(gtExtras)
+style_table <- function(df){
+  
+  df %>%
+    #All column headers are capitalised
+    opt_all_caps() %>% 
+    #Use the Chivo font
+    #Note the great 'google_font' function in 'gt' that removes the need to pre-load fonts
+    opt_table_font(
+      font = list(
+        google_font("JetBrains Mono"),
+        default_fonts()
+      )
+    ) %>%
+    tab_options(
+      #Remove border between column headers and title
+      column_labels.border.top.width = px(3),
+      column_labels.border.top.color = "black",
+      #Remove border around table
+      table.border.top.color = "black",
+      table.border.bottom.color = "black",
+      #Reduce the height of rows
+      data_row.padding = px(3),
+      data_row.padding.horizontal = px(10),
+      #Adjust font sizes and alignment
+      source_notes.font.size = 12,
+      heading.align = "left"
+    ) %>%
+    # We use tab_style() to change style of cells
+    # cell_borders() provides the formatting
+    # locations tells it where
+    # Add black borders to the bottom of all the column labels
+    tab_style(
+      style = list(
+        cell_borders(
+          sides = "bottom",
+          color = "black",
+          weight = px(3)
+        )
+      ),
+      locations = list(
+        cells_column_labels(
+          columns = gt::everything()
+        )
+      )
+    )
+}
+
+df <- read_csv("repo_activity.csv")
+
+df %>%
+  count(language) %>%
+  arrange(desc(n)) %>%
+  summarize(
+    n,
+    x_scaled = n / nrow(df) * 100,
+    .by = language
+  ) %>%
+  gt() %>%
+  gt_plt_bar_pct(
+    column = x_scaled,
+    scaled = TRUE,
+    labels = TRUE,
+    font_size = "12px",
+    fill = "#48c8df"
+  ) %>%
+  fmt_number(
+    columns = n,
+    decimals = 0,
+    use_seps = T
+  ) %>%
+  cols_label(
+    language = 'Top Language',
+    n = 'Count',
+    x_scaled = 'Percent of Total '
+  ) %>%
+    style_table()
+
+```
+:::
+
+:::{focus-on="cr-ploty"}
+```{r}
+#| label: big-repos
+#| echo: false
+#| message: false
+#| warning: false
+
+df %>%
+  arrange(desc(commits)) %>%
+  slice(1:5) %>%
+  select(repo, commits, language, url) %>%
+  gt() %>%
+  cols_label(
+    repo = 'Repo',
+    commits = 'Commits',
+    language = 'Top Language',
+    url = 'url'
+  ) %>%
+    style_table()
+```
+
+:::
+
+:::{focus-on="cr-ploty"}
+
+How it really looks. We have a few large projects and many, many smaller ones
+
+:::
+
+
+:::
+
+:::{#cr-ploty}
+
+
+```{ojs}
+
+node_data = FileAttachment("repo_activity.csv").csv()
+
+
+nodes = node_data.map(d => Object.create(d))
+
+// bfScale = d3.scaleLinear()
+//   .domain([1, 5])
+//   .range([1930, 2020])
+//   .clamp(true)
+    
+scan = crTriggerIndex
+
+chart_param = ({
+  width: width,
+  height: 600,
+  margin: {
+    top: 50,
+    right: 40,
+    bottom: 80,
+    left: 60,
+    center: 150
+  }
+})
+
+chart = {
+  // Define base scales for positioning circles
+  const x = d3.scaleLinear()
+    .domain([0, 1])
+    .range([chart_param.margin.left, chart_param.width - chart_param.margin.right]);
+
+  const y = d3.scaleLinear()
+    .domain([0, 1])
+    .range([chart_param.height - chart_param.margin.bottom, chart_param.margin.top]);
+
+  // Initialize SVG container
+  const svg = d3.select(DOM.svg(chart_param.width, chart_param.height));
+
+  // Append title and subtitle
+  svg.append("text")
+    .attr("x", chart_param.width / 2)
+    .attr("y", chart_param.margin.top - 25)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "20px")
+    .attr("font-weight", "bold")
+    .text("Beeswarm Plot of GitHub Repos Over Time");
+
+  svg.append("text")
+    .attr("x", chart_param.width / 2)
+    .attr("y", chart_param.margin.top - 10)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "14px")
+    .attr("font-weight", "normal")
+    .text("A visualization of repositories in the DOH-EPI-Coders organization");
+
+  // Preprocess data: Map any language that isn't "R" or "Python" to "Other"
+  node_data.forEach(d => {
+    if (d.language === "Jupyter Notebook") {
+      d.language = "Python";
+    } else if (d.language !== "R" && d.language !== "Python") {
+      d.language = "Other";
+    }
+  });
+
+  // Group nodes by language using d3.group
+  const languages = d3.group(node_data, d => d.language);
+
+  // Viridis colors for languages
+  const colorScale = d3.scaleOrdinal()
+  .domain(["R", "Python", "Other"])  // List of languages you want to color
+  .range(["#440154FF", "#90d743",  "#21918c"]);  // Adjusted Viridis colors with more green
+
+  // Scale for node radius based on the number of commits
+  const radiusScale = d3.scaleLog()
+    .domain([1, 5000])  // Adjust the domain to your data range
+    .range([5, 17]);      // Adjust the range for the circle radius
+
+// Scale for node radius based on the number of commits
+  const radiusLinear = d3.scaleLinear()
+    .domain([1, 5000])  // Adjust the domain to your data range
+    .range([1, 90]);      // Adjust the range for the circle radius
+
+  // Define x scale based on create_date for grouping by date
+  const xScale = d3.scaleTime()
+    .domain([new Date("2020-01-01"), new Date("2026-01-01")]) // Set date range
+    .range([chart_param.margin.left, chart_param.width - chart_param.margin.right]);
+
+  // Set up the y-scale based on language groups
+  const yScale = d3.scaleBand()
+    .domain(Array.from(languages.keys()))  // Use the language groups as domain
+    .range([chart_param.margin.top, chart_param.height - chart_param.margin.bottom])
+    .padding(0.1);  // Add padding for spacing between the groups
+
+  function createNodes(scan) {
+    // Sort repos by commits in descending order and get the top 5 for scan == 3
+    const topRepos = scan === 3 ? node_data.sort((a, b) => b.commits - a.commits).slice(0, 5) : [];
+    const topRepoCommits = new Set(topRepos.map(d => d.commits));
+
+    // Initialize simulation with the base forces
+    const sim = d3
+      .forceSimulation(node_data)
+      .force("x", d3.forceX(d => xScale(new Date(d.create_date))))  // Position along the X-axis based on create_date
+      .force("collide", d3.forceCollide().radius(d => radiusScale(d.commits) + 1).strength(0.5));  // Default collision force
+
+    // If `scan > 1`, apply additional forces for language grouping
+    if (scan > 1 && scan < 4) {
+      // Apply additional y-force to divide nodes by language
+      sim.force("y", d3.forceY(d => yScale(d.language) + 70))  // Position nodes along y-axis based on language
+        .force("collide", d3.forceCollide().radius(d => radiusScale(d.commits) + 1).strength(0.8));  // Adjust collision force
+
+      // Create x-axis for years
+      const xAxis = d3.axisBottom(xScale).tickFormat(d3.timeFormat("%Y"));
+      const xAxisGroup = svg.append("g")
+      .attr("transform", `translate(0, ${chart_param.height - chart_param.margin.bottom})`)
+      .call(xAxis);
+    
+        // Style x-axis labels (make them bold and larger)
+        xAxisGroup.selectAll("text")
+        .attr("font-size", "16px")    // Set font size to 16px or any value you prefer
+        .attr("font-weight", "bold"); // Make the labels bold
+
+        // Create y-axis for language groups
+        const yAxis = d3.axisLeft(yScale);
+        const yAxisGroup = svg.append("g")
+        .attr("transform", `translate(${chart_param.margin.left}, 0)`)
+        .call(yAxis);
+        
+        // Style y-axis labels (make them bold and larger)
+        yAxisGroup.selectAll("text")
+        .attr("font-size", "15px")    // Set font size to 16px or any value you prefer
+        .attr("font-weight", "bold"); // Make the labels bold
+      
+    } else if (scan === 4) {
+        // Apply additional y-force to divide nodes by language
+      sim.force("y", d3.forceY(d => yScale(d.language) + 70))  // Position nodes along y-axis based on language
+        .force("collide", d3.forceCollide().radius(d => radiusLinear(d.commits) + 1).strength(0.2));  // Adjust collision force
+
+      // Create x-axis for years
+      const xAxis = d3.axisBottom(xScale).tickFormat(d3.timeFormat("%Y"));
+      const xAxisGroup = svg.append("g")
+      .attr("transform", `translate(0, ${chart_param.height - chart_param.margin.bottom})`)
+      .call(xAxis);
+    
+        // Style x-axis labels (make them bold and larger)
+        xAxisGroup.selectAll("text")
+        .attr("font-size", "16px")    // Set font size to 16px or any value you prefer
+        .attr("font-weight", "bold"); // Make the labels bold
+
+        // Create y-axis for language groups
+        const yAxis = d3.axisLeft(yScale);
+        const yAxisGroup = svg.append("g")
+        .attr("transform", `translate(${chart_param.margin.left}, 0)`)
+        .call(yAxis);
+        
+        // Style y-axis labels (make them bold and larger)
+        yAxisGroup.selectAll("text")
+        .attr("font-size", "15px")    // Set font size to 16px or any value you prefer
+        .attr("font-weight", "bold"); // Make the labels bold
+
+    } else if (scan === 1) {
+        // For `scan === 1`, apply the default force with no language division
+      sim.force("y", d3.forceY(chart_param.height / 2))  // All nodes at the center of Y-axis
+        .force("collide", d3.forceCollide().radius(d => radiusScale(d.commits) + 1).strength(0.5));  // Default collision force
+
+      // Create x-axis for years
+      const xAxis = d3.axisBottom(xScale).tickFormat(d3.timeFormat("%Y"));
+      const xAxisGroup = svg.append("g")
+      .attr("transform", `translate(0, ${chart_param.height - chart_param.margin.bottom})`)
+      .call(xAxis);
+    
+    // Style x-axis labels (make them bold and larger)
+    xAxisGroup.selectAll("text")
+      .attr("font-size", "16px")    // Set font size to 16px or any value you prefer
+      .attr("font-weight", "bold"); // Make the labels bold
+    }
+
+
+    // Restart the simulation to apply the changes
+    sim.alpha(1)
+      .alphaDecay(0.05)
+      .restart();
+
+    // Bind data and draw nodes
+    const node = svg.selectAll(".node")
+      .data(node_data)
+      .enter()
+      .append("circle")
+      .attr("class", "node")
+      .attr("r", d => {
+            if (scan === 4) {
+            return radiusLinear(d.commits);  // Use the linear scale when scan is 4
+            } else {
+            return radiusScale(d.commits);  // Use the original scale for other scan values
+            }
+        }) // Set the radius based on the 'commits' field
+      .attr("cx", d => xScale(new Date(d.create_date)))  // Set initial x position based on date
+      .attr("cy", d => scan > 1 ? yScale(d.language) : chart_param.height / 2)  // Correct y position based on language
+      // style('fill') overrides the circle color. use .attr('fill') for conditional colors!
+      // .style("fill", (d) => colorScale(d.language))  // Highlight top 5 repos with orange
+      //.style("opacity", (d) => topRepoCommits.has(d.commits) ? 1 : 0.6);  // Lower opacity for non-top 5 repos
+      .attr("fill", (d) => topRepoCommits.has(d.commits) ? "yellow" : colorScale(d.language))
+      .attr("opacity", (d) => topRepoCommits.has(d.commits) ? 1 : 0.7)
+      .attr("stroke", (d) => topRepoCommits.has(d.commits) ? "black" : null)  // Add black stroke for top 5
+      .attr("stroke-width", (d) => topRepoCommits.has(d.commits) ? 3 : 0);
+
+
+    // Add tooltips with repo info
+    node.append("title")
+      .text(d =>
+        `Repo: ${d.repo}\n` +
+        `Commits: ${d.commits}\n` +
+        `Contributors: ${d.contributors}\n` +
+        `Create Date: ${d.create_date}`
+      );
+
+    // Hover effect to change circle color to red on mouseover, revert on mouseout
+    node.on("mouseover", function(event, d) {
+    d3.select(this)
+      .attr("fill", "yellow")  // Change the fill color to red on mouseover
+      .attr("stroke", "black")  // Add black border
+      .attr("stroke-width", 2.5);  // Set the border width
+  })
+    .on("mouseout", function(event, d) {
+      d3.select(this)
+        .attr("fill", (d) => topRepoCommits.has(d.commits) ? "yellow" : colorScale(d.language))  // Reset the fill color
+        // .attr("stroke", null)  // Remove the border on mouse out
+        // .attr("stroke-width", null);  // Reset the border width
+    });
+
+    // Show detailed data on click with line breaks
+    node.on("click", function(event, d) {
+      const clickTooltip = d3.select("body").append("div")
+        .attr("class", "click-tooltip")
+        .style("position", "absolute")
+        .style("visibility", "hidden")
+        .style("background", "rgba(0, 0, 0, 0.7)")
+        .style("color", "white")
+        .style("border-radius", "4px")
+        .style("padding", "10px")
+        .style("font-size", "14px")
+        .html(`
+          <strong>Repo:</strong> ${d.repo}<br>
+          <strong>Commits:</strong> ${d.commits}<br>
+          <strong>Contributors:</strong> ${d.contributors}<br>
+          <strong>Create Date:</strong> ${d.create_date}
+        `);
+
+      clickTooltip.style("visibility", "visible")
+        .style("top", `${event.pageY + 10}px`)
+        .style("left", `${event.pageX + 10}px`);
+
+      // Close the click tooltip after 3 seconds (optional)
+      setTimeout(() => {
+        d3.select(".click-tooltip").remove();
+      }, 3000);
+    });
+
+    // Update circle positions on each tick of the simulation
+    sim.on("tick", () => {
+      node
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
+    });
+  }
+
+  // Main logic to check `scan` value and call createNodes accordingly
+  createNodes(scan);  // Pass `scan` to createNodes to handle the different plot configurations
+
+  return svg.node();
+};
+```
+
+
+:::
+
+:::::
+
+::::::{.cr-section}
+
+group goals and my goals @cr-goals
+
+:::{#cr-goals}
+
+:::: {.splash-page}
+
+## NW-PaGe GitHub Org ([link](https://github.com/NW-PaGe))
+
+::::{.columns}
+::: {.column width="50%"}
+### Goals
+
+- Transparency
+- Reproducibility
+- Education
+- Collaboration
+:::
+
+::: {.column width="50%"}
+### My Goals
+
+- Write the SOPs
+- Prevent data leaks
+- Explore publishing tools
+- Get the ball rolling
+:::
+::::
+
+
+![](images/dc.gif){.myframe2 style="display: block; margin: 20px auto;"}
+
+
+::::
+:::
+
+::::::
+
+::::::{.cr-section}
+
+## SOPs
+
+Here are the [docs](https://nw-page.github.io/standards/) @cr-docs
+
+:::{#cr-docs}
+
+::: panel-tabset
+### Checklist
+
+Here's a [checklist for getting started](https://nw-page.github.io/standards/gh/quickstart.html)
+
+-   For those looking to make a new repo
+-   Security items to review
+-   Create security guardrails
+-   Secret scanning
+-   Licensing
+-   Branch protections
+-   Documentations
+
+### Security
+
+-   cannot push credentials or sensitive data ([here's a list](https://nw-page.github.io/standards/gh/security.html#tbl-prohibit))
+-   [.gitignore](https://nw-page.github.io/standards/gh/security.html#sec-creds)
+-   [hooks](https://nw-page.github.io/standards/gh/security.html#sec-hooks)
+-   [secret scanning](https://nw-page.github.io/standards/gh/security.html#sec-scan)
+-   convert private repo to [public](https://nw-page.github.io/standards/gh/security.html#sec-public)
+
+### For Admins
+
+[Policies at the Org level](https://nw-page.github.io/standards/gh/policies.html)
+
+-   Code of conduct
+-   Contributing form
+-   Templates (Issues, PRs, Requests, Discussions)
+-   GitHub apps for code sign off
+
+### Collaboration Guide
+
+Here's a [collab guide](https://nw-page.github.io/standards/gh/contribute.html)
+
+-   Git/GitHub basics
+-   How to contribute to a repo
+-   Git/GitHub workflows
+
+### Licensing
+
+Use an MIT license for everything. Here's more [info](https://nw-page.github.io/standards/gh/lic.html)
+
+### Tutorials
+
+-   [Automated release cycles in your repo](https://nw-page.github.io/standards/gh/release.html)
+-   [Virtual environments in R/Python](https://nw-page.github.io/standards/gh/renv.html)
+-   [Templates](https://nw-page.github.io/standards/gh/templates.html)
+-   [Quarto for documentation](https://nw-page.github.io/standards/gh/how_to.html)
+-   [Creating a new repo](https://nw-page.github.io/standards/gh/newrepo.html)
+:::
+
+:::
+
+::::::
+
+::::::{.cr-section}
+
+## Security
+
+This file contains regular expressions of credentials that are _prohibited_ from being in a remote GitHub repo. @cr-hooks1
+
+
+:::{#cr-hooks1}
+
+![](images/test_key.gif){.myframe}
+
+:::
+
+The script to the right has hardcoded prohibited patterns. @cr-hooks2
+
+
+:::{#cr-hooks2}
+
+![](images/test_key_script.gif){.myframe}
+
+:::
+
+[AWS Git Secrets](https://github.com/awslabs/git-secrets) rejects the commit if it detects the patterns found in the secret key file. @cr-hooks3
+
+
+:::{#cr-hooks3}
+
+![](images/test_key_flag.gif){.myframe}
+
+:::
+
+The first three lines show the regex patterns that got flagged, along with a warning message. The last chunk gives you instructions on how to handle false positives. @cr-output
+
+:::{#cr-output}
+
+:::::::{.codewindow}
+::::{.header}
+
+<svg viewBox="0 0 420 100" style="width:55px"><circle fill="#ff5f57" cx="50" cy="50" r="50"/><circle fill="#febc2e" cx="210" cy="50" r="50"/><circle fill="#28c840" cx="370" cy="50" r="50"/></svg>
+
+::: file
+output
+:::
+::::
+
+:::: textarea
+::: sourceCode
+```{bash}
+#| code-line-numbers: "|1-3|5|13"
+#| eval: false
+#| echo: true
+#| code-fold: false
+test.R:3:user <- secret_username
+test.R:4:password <- secret_password
+test.R:6:connection <- ODBC_CONNECTION1
+
+[ERROR] Matched one or more prohibited patterns
+
+Possible mitigations:
+- Mark false positives as allowed using: git config --add secrets.allowed ...
+- Mark false positives as allowed by adding regular expressions to .gitallowed at repository's root directory
+- List your configured patterns: git config --get-all secrets.patterns
+- List your configured allowed patterns: git config --get-all secrets.allowed
+- List your configured allowed patterns in .gitallowed at repository's root directory
+- Use --no-verify if this is a one-time false positive
+```
+:::
+::::
+:::::::
+
+:::
+
+::::::
+
+:::::::: cr-section
+
+## GitHub Pages and Quarto
+
+We can use GitHub Pages to host htmls, and Quarto to develop websites, books, articles, presentations, and reports.
+
+Here's an example parameterized and automated report. @cr-report
+
+::: {#cr-report}
+![](images/typst-report.png){width="500"}
+:::
+
+We can bake our code into the report and produce plots and statistics so that we don't need to copy and paste screen shots of the plots or manually update numbers everytime we generate the report. [@cr-report]{pan-to="-40%,60%" scale-by="3.1"}
+
+
+And likewise with text. We don't need to 'hardcode' any text into the document. Notice the statistics written in the text - all of them are 'written' using code and can be automatically updated whenever there are changes.  [@cr-report]{pan-to="60%,-90%" scale-by="3.1"}
+
+
+::::::::
+
+:::::::: cr-section
+
+Here's how you can automate your reports {{< bi cloud-snow-fill size=2em  >}}
+
+Here is a quarto (.qmd) file that processes data and outputs our report. @cr-yaml
+
+In the yaml front matter we can define metadata. Here I'm specifying that I want multiple formats to be produced from this file along with a set of parameters.  [@cr-yaml]{highlight="1-11"}
+
+You can write markdown text, link to Zotero, and make cross references. [@cr-yaml]{highlight="15"}
+
+And you can embed figures/code from external scripts. [@cr-yaml]{highlight="17-21"}
+
+
+
+:::::::{#cr-yaml}
+:::::::{.codewindow .medframe}
+:::: header
+<svg viewBox="0 0 420 100" style="width:55px"><circle fill="#ff5f57" cx="50" cy="50" r="50"/><circle fill="#febc2e" cx="210" cy="50" r="50"/><circle fill="#28c840" cx="370" cy="50" r="50"/></svg>
+
+::: file
+report.qmd
+:::
+::::
+
+:::: textarea
+::: sourceCode
+````markdown
+---
+title: Epi Report
+format: 
+      html: default
+      pdf: default
+      docx: default
+      typst: default
+param: 
+      state: "WA"
+      year: "2024"
+---
+
+# Introduction
+
+Text here, @citation here @cross-section-link here
+
+Here's a table:
+{{< embed notebooks/nwcoe.qmd#tab-countprop >}}
+
+Here's a plot:
+{{< embed notebooks/nwcoe.ipynb#fig-trendline >}}
+
+
+````
+:::
+::::
+:::::::
+::::::: 
+
+
+::::::::
+
+
+::::::::{.cr-section}
+
+We can bake code into the report and use the outputs in the text. @cr-yaml2
+
+This code chunk pulls data from a model and assigns it to a variable named `wa_prop` [@cr-yaml2]{highlight="5-9"}
+
+And we can use the output `wa_prop` in the text like this: [@cr-yaml2]{highlight="15"}
+
+
+:::::::{#cr-yaml2}
+:::::::{.codewindow .medframe}
+:::: header
+<svg viewBox="0 0 420 100" style="width:55px"><circle fill="#ff5f57" cx="50" cy="50" r="50"/><circle fill="#febc2e" cx="210" cy="50" r="50"/><circle fill="#28c840" cx="370" cy="50" r="50"/></svg>
+
+::: file
+report.qmd
+:::
+::::
+
+:::: textarea
+::: sourceCode
+````markdown
+```{{r}}
+# Create a model 
+model <- multinom(cbind(Alpha, Delta, Omicron) ~ Date,data = variant_data_wide)
+
+wa_prop <- predicted_data %>%
+  arrange(desc(Date)) %>%
+  slice(1) %>%
+  pull(Alpha) %>%
+  scales::percent(., accuracy = 0.01)
+
+```
+
+## Site Summaries
+
+- Washington State Department of Health - Alpha variant proportion is `{{r}} wa_prop`
+- Georgia Department of Public Health probablity of detection: `{{r}} ga_prop` and the consensus genomes are uploaded to public repositories like GISAID and GenBank.
+- Massachusetts Department of Health prop - `{{r}} ne_prop`
+- Virginia Deparment of Health - `{{r}} va_prop`
+
+````
+:::
+::::
+:::::::
+::::::: 
+
+And now our code can automatically update the text in the report: @cr-report-sum
+
+::: {#cr-report-sum}
+![](images/site_sum.png){.myframe2}
+:::
+
+::::::::
+
+:::::::: cr-section
+
+Here's how parameterized reports work {{< bi rocket-takeoff-fill size=2em >}}
+
+Start with our .qmd file. @cr-template1
+
+::: {#cr-template1}
+![](images/template1-dark.svg){width=1100 height=900}
+:::
+
+When rendering, we can set the parameter we want. @cr-template2
+
+::: {#cr-template2}
+![](images/template2-dark.svg){width=1100 height=900}
+:::
+
+Quarto will generate a separate output file for each parameter set, with the data filtered according to the specified parameter(s). @cr-template3
+
+::: {#cr-template3}
+![](images/template3-dark.svg){width=1100 height=900}
+:::
+
+::::::::
+
+
+::::::{.cr-section}
+
+## but who cares?
+
+:::{focus-on="cr-cares"}
+
+I do!
+
+We can use Quarto and GitHub to showcase our work and run code automatically. A GitHub Action can run code conditionally or on a schedule, and GitHub Pages can host the html output of our reports.
+
+:::
+
+:::{#cr-cares}
+
+:::: {.splash-page}
+
+![](images/gh-action.png){.myframe}
+
+![](images/gh-page.png){.myframe}
+
+::::
+
+:::
+
+
+:::::::
+
+<br>
+<br>
+<br>
+
+# examples
+
+## [COVID Seq ELR](https://github.com/NW-PaGe/covid_seq_elr)
+
+**Author: Philip Crain**
+
+Summarize and share COVID-19 Sequencing Metadata ELR data flow at the Washington State Department of Health.
+
+
+<table>
+<tr><td valign="top">
+
+This repo provides a high-level description of the Sars-CoV-2 sequencing metadata ELR ingestion process at DOH, from lab submissions to ingestion into the Washington Disease Reporting System where it is linked with epi data. See the [GitHub Page](https://nw-page.github.io/covid_seq_elr) for more information
+
+</td><td valign="top">
+[![](images/covid-seq-elr.png){style="border: 5px solid black; padding: 5px;" width=1000}](https://nw-page.github.io/covid_seq_elr)
+</td>
+</tr>
+</table>
+
+## [Case Study Vibrio](https://github.com/NW-PaGe/Case-Study-Vibrio)
+
+**Author: Marcela Torres**
+
+Currently only internal users can see this repo and GitHub Page.
+
+<table>
+<tr><td valign="top">
+
+This case study is intended for epidemiologists, bioinformaticians, and other public health professionals who are interested in using sequencing data as a way to better understand transmission and links between cases. We provide a couple of options to execute some of the tasks based on different levels of expertise. See [GitHub Page](https://ubiquitous-disco-j59rm5o.pages.github.io/) for more details.
+
+</td><td valign="top">
+[![](images/vibrio.png){style="border: 5px solid black; padding: 5px;" width=1450}](https://ubiquitous-disco-j59rm5o.pages.github.io/)
+</td>
+</tr>
+</table>
+
+
+## [MPOX Surveillance for WA DOH](https://github.com/NW-PaGe/mpox-surveillance)
+
+**Author: Pauline Trinh**
+
+Currently only internal users can see this repo and GitHub Page.
+
+<table>
+<tr><td valign="top">
+
+This repo contains scripts and information on how MPOX sequencing data is retrieved from NCBI and analyzed in Nextclade to look for mutations associated with tecovirimat resistance (asparagine 267 deletion N267del and alanine-184-to-threonine substitution A184T) and generate a report of those findings.
+
+Currently the report and scripts in this repository are automated to run biweekly on Mondays at 7am Pacific Time using GitHub Actions. For manual running of the scripts in this repository please see instructions below.
+
+</td><td valign="top">
+[![](images/mpox.png){style="border: 5px solid black; padding: 5px;" width=1190}](https://github.com/NW-PaGe/mpox-surveillance)
+</td>
+</tr>
+</table>
+
+## [COVID-19 Lineage Classifications](https://github.com/NW-PaGe/lineage_classifications)
+
+**Authors: Lauren Frisbie, Alena Schroeder, Frank Aragona**
+
+Create a public lineage classifications dataset. The dataset is maintained by the WA DOH Molecular Epidemiology Program in order to group the lineages for the Sequencing & Variants Report. 
+
+<table>
+<tr><td valign="top">
+
+This repo contains scripts that will pull SARS-COV-2 lineages of interest from CDC's repo, transform the data for Washington State DOH reporting purposes, and then output the resulting lineage classifications dataset. The dataset will be produced biweekly and can be found in the data folder. See instructions below on how to pull the dataset in R or Python.
+
+For more information on how the scripts work, plots, and guides on how to pull data from the repo, please open the [github page](https://nw-page.github.io/lineage_classifications/).
+
+</td><td valign="top">
+[![](images/lineages.png){style="border: 5px solid black; padding: 5px;" width=1500}](https://nw-page.github.io/lineage_classifications/)
+</td>
+</tr>
+</table>
+
+## [Seq Integration Pipeline](https://github.com/NW-PaGe/sequencing_integration_pipeline1.0)
+
+**Author: DIQA, MEP, DSSU, evvveryone**
+
+Documentation on the first version of the data integration pipeline for sequencing metadata at WA DOH - used during the height of the COVID-19 pandemic.
+
+<table>
+<tr><td valign="top">
+
+For a more detailed look at the pipeline, please read the manuscript in our [github page](https://nw-page.github.io/sequencing_integration_pipeline1.0/). The document comes in multiple formats (HTML, PDF and MS Word) and all the main code is documented under the Notebooks tab in the site. There are links to dev containers if you wish to explore the code, although there are no test data sets available at this time. In the future we will push our updated pipelines and test data so that you can explore the code.
+
+</td><td valign="top">
+[![](images/seq_1.0.png){style="border: 5px solid black; padding: 5px;" width=1750}](https://github.com/NW-PaGe/sequencing_integration_pipeline1.0)
+</td>
+</tr>
+</table>
