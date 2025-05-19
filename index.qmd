@@ -121,7 +121,7 @@ style_table <- function(df){
     )
 }
 
-df <- read_csv("repo_data_test.csv")
+df <- read_csv("repo_activity.csv")
 
 df %>%
   count(language) %>%
@@ -183,7 +183,7 @@ df %>%
 
 ```{ojs}
 
-node_data = FileAttachment("repo_data_test.csv").csv()
+node_data = FileAttachment("repo_activity.csv").csv()
 
 
 nodes = node_data.map(d => Object.create(d))
@@ -252,12 +252,12 @@ chart = {
   // Viridis colors for languages
   const colorScale = d3.scaleOrdinal()
   .domain(["R", "Python", "Other"])  // List of languages you want to color
-  .range(["#440154", "#3B528B", "#287D49"]);  // Adjusted Viridis colors with more green
+  .range(["#440154FF", "#21918c", "#90d743"]);  // Adjusted Viridis colors with more green
 
   // Scale for node radius based on the number of commits
   const radiusScale = d3.scaleLog()
     .domain([1, 5000])  // Adjust the domain to your data range
-    .range([1, 13]);      // Adjust the range for the circle radius
+    .range([1, 17]);      // Adjust the range for the circle radius
 
   // Define x scale based on create_date for grouping by date
   const xScale = d3.scaleTime()
@@ -341,8 +341,14 @@ chart = {
       .attr("r", d => radiusScale(d.commits))  // Set the radius based on the 'commits' field
       .attr("cx", d => xScale(new Date(d.create_date)))  // Set initial x position based on date
       .attr("cy", d => scan > 1 ? yScale(d.language) : chart_param.height / 2)  // Correct y position based on language
-      .style("fill", (d) => topRepoCommits.has(d.commits) ? "orange" : colorScale(d.language))  // Highlight top 5 repos with orange
-      .style("opacity", (d) => topRepoCommits.has(d.commits) ? 1 : 0.6);  // Lower opacity for non-top 5 repos
+      // style('fill') overrides the circle color. use .attr('fill') for conditional colors!
+      // .style("fill", (d) => colorScale(d.language))  // Highlight top 5 repos with orange
+      //.style("opacity", (d) => topRepoCommits.has(d.commits) ? 1 : 0.6);  // Lower opacity for non-top 5 repos
+      .attr("fill", (d) => topRepoCommits.has(d.commits) ? "yellow" : colorScale(d.language))
+      .attr("opacity", (d) => topRepoCommits.has(d.commits) ? 1 : 0.7)
+      .attr("stroke", (d) => topRepoCommits.has(d.commits) ? "black" : null)  // Add black stroke for top 5
+      .attr("stroke-width", (d) => topRepoCommits.has(d.commits) ? 3 : 0);
+
 
     // Add tooltips with repo info
     node.append("title")
@@ -356,16 +362,16 @@ chart = {
     // Hover effect to change circle color to red on mouseover, revert on mouseout
     node.on("mouseover", function(event, d) {
     d3.select(this)
-      .attr("fill", "red")  // Change the fill color to red on mouseover
+      .attr("fill", "yellow")  // Change the fill color to red on mouseover
       .attr("stroke", "black")  // Add black border
-      .attr("stroke-width", 2);  // Set the border width
+      .attr("stroke-width", 2.5);  // Set the border width
   })
-  .on("mouseout", function(event, d) {
-    d3.select(this)
-      .attr("fill", (d) => topRepoCommits.has(d.commits) ? "orange" : colorScale(d.language))  // Reset the fill color
-      .attr("stroke", null)  // Remove the border on mouse out
-      .attr("stroke-width", null);  // Reset the border width
-  });
+    .on("mouseout", function(event, d) {
+      d3.select(this)
+        .attr("fill", (d) => topRepoCommits.has(d.commits) ? "yellow" : colorScale(d.language))  // Reset the fill color
+        // .attr("stroke", null)  // Remove the border on mouse out
+        // .attr("stroke-width", null);  // Reset the border width
+    });
 
     // Show detailed data on click with line breaks
     node.on("click", function(event, d) {
