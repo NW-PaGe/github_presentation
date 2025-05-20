@@ -260,7 +260,7 @@ chart = {
   // Viridis colors for languages
   const colorScale = d3.scaleOrdinal()
   .domain(["R", "Python", "Other"])  // List of languages you want to color
-  .range(["#440154FF", "#90d743",  "#21918c"]);  // Adjusted Viridis colors with more green
+  .range(["#5cc870", "#3B528B","#440154" ]); // Adjusted Viridis colors with more green
 
   // Scale for node radius based on the number of commits
   const radiusScale = d3.scaleLog()
@@ -279,7 +279,7 @@ chart = {
 
   // Set up the y-scale based on language groups
   const yScale = d3.scaleBand()
-    .domain(Array.from(languages.keys()))  // Use the language groups as domain
+    .domain(["Other", "Python", "R"])  // fixed order  // Use the language groups as domain
     .range([chart_param.margin.top, chart_param.height - chart_param.margin.bottom])
     .padding(0.1);  // Add padding for spacing between the groups
 
@@ -295,8 +295,23 @@ chart = {
       .force("collide", d3.forceCollide().radius(d => radiusScale(d.commits) + 1).strength(0.5));  // Default collision force
 
     // If `scan > 1`, apply additional forces for language grouping
-    if (scan > 1 && scan < 4) {
-      // Apply additional y-force to divide nodes by language
+    if (scan == 1) {
+          // For `scan === 1`, apply the default force with no language division
+      sim.force("y", d3.forceY(chart_param.height / 2))  // All nodes at the center of Y-axis
+        .force("collide", d3.forceCollide().radius(d => radiusScale(d.commits) + 1).strength(0.5));  // Default collision force
+
+      // Create x-axis for years
+      const xAxis = d3.axisBottom(xScale).tickFormat(d3.timeFormat("%Y"));
+      const xAxisGroup = svg.append("g")
+      .attr("transform", `translate(0, ${chart_param.height - chart_param.margin.bottom})`)
+      .call(xAxis);
+    
+    // Style x-axis labels (make them bold and larger)
+    xAxisGroup.selectAll("text")
+      .attr("font-size", "16px")    // Set font size to 16px or any value you prefer
+      .attr("font-weight", "bold"); // Make the labels bold
+    } else if (scan == 2 || scan == 3){
+        // Apply additional y-force to divide nodes by language
       sim.force("y", d3.forceY(d => yScale(d.language) + 70))  // Position nodes along y-axis based on language
         .force("collide", d3.forceCollide().radius(d => radiusScale(d.commits) + 1).strength(0.8));  // Adjust collision force
 
@@ -321,8 +336,7 @@ chart = {
         yAxisGroup.selectAll("text")
         .attr("font-size", "15px")    // Set font size to 16px or any value you prefer
         .attr("font-weight", "bold"); // Make the labels bold
-      
-    } else if (scan === 4) {
+    } else if (scan==4){
         // Apply additional y-force to divide nodes by language
       sim.force("y", d3.forceY(d => yScale(d.language) + 70))  // Position nodes along y-axis based on language
         .force("collide", d3.forceCollide().radius(d => radiusLinear(d.commits) + 1).strength(0.2));  // Adjust collision force
@@ -348,24 +362,7 @@ chart = {
         yAxisGroup.selectAll("text")
         .attr("font-size", "15px")    // Set font size to 16px or any value you prefer
         .attr("font-weight", "bold"); // Make the labels bold
-
-    } else if (scan === 1) {
-        // For `scan === 1`, apply the default force with no language division
-      sim.force("y", d3.forceY(chart_param.height / 2))  // All nodes at the center of Y-axis
-        .force("collide", d3.forceCollide().radius(d => radiusScale(d.commits) + 1).strength(0.5));  // Default collision force
-
-      // Create x-axis for years
-      const xAxis = d3.axisBottom(xScale).tickFormat(d3.timeFormat("%Y"));
-      const xAxisGroup = svg.append("g")
-      .attr("transform", `translate(0, ${chart_param.height - chart_param.margin.bottom})`)
-      .call(xAxis);
-    
-    // Style x-axis labels (make them bold and larger)
-    xAxisGroup.selectAll("text")
-      .attr("font-size", "16px")    // Set font size to 16px or any value you prefer
-      .attr("font-weight", "bold"); // Make the labels bold
     }
-
 
     // Restart the simulation to apply the changes
     sim.alpha(1)
@@ -390,10 +387,9 @@ chart = {
       // style('fill') overrides the circle color. use .attr('fill') for conditional colors!
       // .style("fill", (d) => colorScale(d.language))  // Highlight top 5 repos with orange
       //.style("opacity", (d) => topRepoCommits.has(d.commits) ? 1 : 0.6);  // Lower opacity for non-top 5 repos
-      .attr("fill", (d) => topRepoCommits.has(d.commits) ? "yellow" : colorScale(d.language))
-      .attr("opacity", (d) => topRepoCommits.has(d.commits) ? 1 : 0.7)
-      .attr("stroke", (d) => topRepoCommits.has(d.commits) ? "black" : null)  // Add black stroke for top 5
-      .attr("stroke-width", (d) => topRepoCommits.has(d.commits) ? 3 : 0);
+      .attr("fill", (d) => topRepoCommits.has(d.commits) ? "#FDE725" : colorScale(d.language))
+      .attr("stroke", (d) => topRepoCommits.has(d.commits) ? "black" : "none")
+      .attr("stroke-width", (d) => topRepoCommits.has(d.commits) ? 2 : 0);
 
 
     // Add tooltips with repo info
@@ -407,16 +403,18 @@ chart = {
 
     // Hover effect to change circle color to red on mouseover, revert on mouseout
     node.on("mouseover", function(event, d) {
-    d3.select(this)
-      .attr("fill", "yellow")  // Change the fill color to red on mouseover
-      .attr("stroke", "black")  // Add black border
-      .attr("stroke-width", 2.5);  // Set the border width
-  })
+      d3.select(this)
+        .transition().duration(200)
+        .attr("fill", "#FDE725")
+        .attr("stroke", "black")
+        .attr("stroke-width", 3);
+    })
     .on("mouseout", function(event, d) {
       d3.select(this)
-        .attr("fill", (d) => topRepoCommits.has(d.commits) ? "yellow" : colorScale(d.language))  // Reset the fill color
-        // .attr("stroke", null)  // Remove the border on mouse out
-        // .attr("stroke-width", null);  // Reset the border width
+        .transition().duration(100)
+        .attr("fill", (d) => topRepoCommits.has(d.commits) ? "#FDE725" : colorScale(d.language))
+        .attr("stroke", (d) => topRepoCommits.has(d.commits) ? "black" : "none")
+        .attr("stroke-width", (d) => topRepoCommits.has(d.commits) ? 2 : 0);
     });
 
     // Show detailed data on click with line breaks
